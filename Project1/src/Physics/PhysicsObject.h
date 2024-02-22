@@ -79,6 +79,13 @@ public:
 	float mass = 1.0f;
 	void SetMass(const float& massValue);
 
+private:
+
+	
+
+	void DrawPhysicsObjectProperties();
+
+	
 
 
 };

@@ -137,6 +137,8 @@ void ApplicationRenderer::WindowInitialize(int width, int height,  std::string w
    // renderTextureCamera->IntializeRenderTexture(new RenderTexture());
   
     isImguiPanelsEnable = true;
+
+    
 }
 
 void ApplicationRenderer::InitializeShaders()
@@ -216,13 +218,23 @@ void ApplicationRenderer::Start()
      PhysicsObject* ballPhysics = new PhysicsObject();
      ballPhysics->name = "BallPhysics";
      ballPhysics->LoadModel(*(DebugModels::GetInstance().defaultSphere));
+     ballPhysics->transform.SetPosition(glm::vec3(0, 3, 0));
      ballPhysics->transform.SetScale(glm::vec3(0.25f));
      GraphicsRender::GetInstance().AddModelAndShader(ballPhysics, defaultShader);
 
      ballPhysics->Initialize(SPHERE, true, DYNAMIC);
 
 
-  
+     PhysicsObject* floor = new PhysicsObject();
+     floor->name = "Floor Physics";
+     floor->LoadModel("Models/Floor/Floor.fbx");
+     floor->transform.SetRotation(glm::vec3(90,0,0));
+     floor->transform.SetPosition(glm::vec3(0,-2,0));
+
+     GraphicsRender::GetInstance().AddModelAndShader(floor, defaultShader);
+     floor->Initialize(AABB, true, STATIC);
+
+
 
 }
 
@@ -335,12 +347,12 @@ void ApplicationRenderer::EngineGraphicsRender()
 
 
     /*sceneViewframeBuffer->Bind();
+   
+    //GraphicsRender::GetInstance().Clear();
+    //PreRender();
+    //GraphicsRender::GetInstance().Draw();
 
-    GraphicsRender::GetInstance().Clear();
-    PreRender();
-    GraphicsRender::GetInstance().Draw();
-
-    sceneViewframeBuffer->Unbind();*/
+    //sceneViewframeBuffer->Unbind();*/
     RenderForCamera(sceneViewcamera, sceneViewframeBuffer);
 
 

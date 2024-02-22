@@ -76,6 +76,10 @@ void PhysicsEngine::UpdatePhysics(float deltatime)
 
     for (size_t i = 0; i < physicsObjects.size(); i++)
     {
+        if (!physicsObjects[i]->isEnabled)
+        {
+            continue;
+        }
         if (physicsObjects[i]->mode == ObjectMode::STATIC)
         {
             continue;

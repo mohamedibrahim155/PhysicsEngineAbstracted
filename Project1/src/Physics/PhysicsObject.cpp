@@ -30,6 +30,9 @@ PhysicsObject::~PhysicsObject()
 void PhysicsObject::DrawProperties()
 {
 	Model::DrawProperties();
+
+	DrawPhysicsObjectProperties();
+
 }
 
 void PhysicsObject::SceneDraw()
@@ -418,6 +421,62 @@ void PhysicsObject::SetMass(const float& massValue)
 {
 	this->mass = massValue;
 	inverseMass = 1.0f / mass;
+}
+
+void PhysicsObject::DrawPhysicsObjectProperties()
+{
+	
+	ImGui::NewLine();
+	if (!ImGui::TreeNodeEx("Physics properties", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
+
+
+	ImGui::Checkbox("IsEnable", &isEnabled);
+	ImGui::SameLine();
+
+	ImGui::NewLine();
+	ImGui::Checkbox("IsBvhActive ", &isBvhActive);
+
+	ImGui::Text("Object Mode");
+	ImGui::SameLine();
+	const char* objectModeOptions[] = { "Static", "Dynamic"};
+	ImGui::SetNextItemWidth(200);
+	if (ImGui::Combo("##Object Mode", reinterpret_cast<int*>(&mode), objectModeOptions, IM_ARRAYSIZE(objectModeOptions)))
+	{
+		
+	}
+
+	ImGui::Text("Physics Type");
+	ImGui::SameLine();
+	const char* physicsTypeOptions[] = { "AABB", "SPHERE" };
+	ImGui::SetNextItemWidth(200);
+	if (!ImGui::Combo("##Physics Type", reinterpret_cast<int*>(&physicsType), physicsTypeOptions, IM_ARRAYSIZE(physicsTypeOptions)))
+	{
+		switch (physicsType)
+		{
+		case SPHERE:
+			GraphicsRender::GetInstance().DrawSphere(glm::vec3(0,1,0), 5, glm::vec4(1, 0, 0, 1));
+			break;
+		case AABB:
+			//	GraphicsRender::GetInstance().DrawBox(this->GetModelAABB()., this->transform.scale, glm::vec4(0, 1, 0, 1));
+
+			break;
+		case MESH_TRIANGLES:
+			break;
+		default:
+			break;
+		}
+
+	}
+	
+	ImGui::Text("Bouciness");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(200);
+	ImGui::DragFloat("##Bouciness", &bounciness);
+
+	ImGui::TreePop();
 }
 
 
