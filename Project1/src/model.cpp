@@ -120,7 +120,10 @@ void Model::LoadModel(const Model& copyModel, bool isDebugModel)
     modelPath = copyModel.modelPath;
     isLoadTexture = copyModel.isLoadTexture;
 
-    SetModelName();
+    if (name.empty())
+    {
+        SetModelName();
+    }
 
     if (isDebugModel) return;
     InitializeEntity(this);
