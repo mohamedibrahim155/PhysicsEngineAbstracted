@@ -7,7 +7,7 @@ std::vector<glm::vec3> collisionNormal;
 
 PhysicsObject::PhysicsObject(Model* model)
 {
-	this->model = model;
+	//this->model = model;
 	acceleration = glm::vec3(0.0f);
 	
 	
@@ -27,12 +27,35 @@ PhysicsObject::~PhysicsObject()
 	//delete model;
 }
 
+void PhysicsObject::DrawProperties()
+{
+	Model::DrawProperties();
+}
+
+void PhysicsObject::SceneDraw()
+{
+	Model::SceneDraw();
+
+}
+
+void PhysicsObject::Start()
+{
+}
+
+void PhysicsObject::Update(float deltaTime)
+{
+}
+
+void PhysicsObject::OnDestroy()
+{
+}
+
 void PhysicsObject::update(float deltatime)
 {
 	glm::vec3 gravity(0.0f, -9.81f* gravityValue, 0.0f);
 	acceleration = gravity;
 	velocity += acceleration * deltatime;
-	model->transform.position += velocity * deltatime;
+	transform.position += velocity * deltatime;
 	
 
 }
@@ -96,7 +119,7 @@ void PhysicsObject::update(float deltatime)
 
 cAABB PhysicsObject::GetModelAABB()
 {
-	glm::mat4 transformMatrix = model->transform.GetModelMatrix();
+	glm::mat4 transformMatrix = transform.GetModelMatrix();
 
 
 	cAABB localAABB;
@@ -148,7 +171,7 @@ bool PhysicsObject::checkCollision(PhysicsObject* other, std::vector<glm::vec3>&
 			if (other->isBvhActive)
 			{
 				return CollisionAABBVsMeshOfTriangles(UpdateAABB(), other->BvhAABBTree->root,
-					other->model->transform.GetModelMatrix(), other->GetModelTriangleList(),
+					other->transform.GetModelMatrix(), other->GetModelTriangleList(),
 					collisionPoints, collisionNormals, collisionAABBs);
 			}
 		}
@@ -174,10 +197,10 @@ bool PhysicsObject::checkCollision(PhysicsObject* other, std::vector<glm::vec3>&
 			{
 				cSphere* updatedSphere = new cSphere(UpdateSphere());
 				return CollisionSphereVsMeshOfTriangles(UpdateAABB(), updatedSphere, other->BvhAABBTree->root,
-					other->model->transform.GetModelMatrix(), other->GetModelTriangleList(), collisionPoints, collisionNormals, collisionAABBs);
+					other->transform.GetModelMatrix(), other->GetModelTriangleList(), collisionPoints, collisionNormals, collisionAABBs);
 			}
 
-			return CollisionSphereVsMeshOfTriangles(UpdateSphere(), other->model->transform.GetModelMatrix(),
+			return CollisionSphereVsMeshOfTriangles(UpdateSphere(), other->transform.GetModelMatrix(),
 				other->listoftriangles, other->triangleSpheres,collisionPoints, collisionNormals);
 
 		}
@@ -185,7 +208,7 @@ bool PhysicsObject::checkCollision(PhysicsObject* other, std::vector<glm::vec3>&
 	case PhysicsType:: MESH_TRIANGLES :
 		if (other->physicsType == SPHERE)
 		{
-			return CollisionSphereVsMeshOfTriangles(other->UpdateSphere(),model->transform.GetModelMatrix(),
+			return CollisionSphereVsMeshOfTriangles(other->UpdateSphere(),transform.GetModelMatrix(),
 				listoftriangles, triangleSpheres,collisionPoints, collisionNormals);
 		}
 
@@ -217,7 +240,7 @@ cAABB  PhysicsObject:: UpdateAABB()
 
 	glm::vec3 originalMinV = aabb.minV;
 	glm::vec3 originalMaxV = aabb.maxV;
-	glm::mat4 transformMatrix = model->transform.GetModelMatrix();
+	glm::mat4 transformMatrix =transform.GetModelMatrix();
 
 	// Transform the eight vertices of the original AABB
 	glm::vec4 vertices[8];
@@ -247,15 +270,15 @@ cSphere PhysicsObject::UpdateSphere()
 {
 	glm::vec3 originalCenter = sphereShape.center;
 	float orginalRadius = sphereShape.radius;
-	glm::mat4 transformMatrix = model->transform.GetModelMatrix();
+	glm::mat4 transformMatrix = transform.GetModelMatrix();
 	glm::vec4 transformedCenter = transformMatrix * glm::vec4(originalCenter, 1.0f);
 
 	glm::mat4 scaleMatrix = glm::mat4(1.0f); // Initialize the scale matrix
-	scaleMatrix[0][0] = model->transform.scale.x;
-	scaleMatrix[1][1] = model->transform.scale.y;
-	scaleMatrix[2][2] = model->transform.scale.z;
+	scaleMatrix[0][0] = transform.scale.x;
+	scaleMatrix[1][1] = transform.scale.y;
+	scaleMatrix[2][2] = transform.scale.z;
 
-	float maxScale = glm::max(model->transform.scale.x, glm::max(model->transform.scale.y, model->transform.scale.z));
+	float maxScale = glm::max(transform.scale.x, glm::max(transform.scale.y, transform.scale.z));
 	float updatedRadius = orginalRadius * maxScale;
 
 	return cSphere(glm::vec3(transformedCenter), updatedRadius);
@@ -271,7 +294,7 @@ void PhysicsObject::CalculateTriangle()
 	listoftriangles.clear();
 	triangleSpheres.clear();
 
-	for  (std::shared_ptr<Mesh> mesh : model->meshes )
+	for  (std::shared_ptr<Mesh> mesh : meshes )
 	{
 		std::vector<Triangle> trianglelist;
 		std::vector<cSphere*> meshSphers;
@@ -345,17 +368,17 @@ void PhysicsObject::Initialize(PhysicsType physicsType, bool collision, ObjectMo
 
 cAABB PhysicsObject::CalculateModelAABB()
 {
-	if (model->meshes.empty())
+	if (meshes.empty())
 	{
 		return cAABB{ glm::vec3(0.0f), glm::vec3(0.0f) };
 	}
 
 	cAABB minMax;
 
-	minMax.minV = model->meshes[0]->vertices[0].Position;
-	minMax.maxV = model->meshes[0]->vertices[0].Position;
+	minMax.minV = meshes[0]->vertices[0].Position;
+	minMax.maxV = meshes[0]->vertices[0].Position;
 
-	for (std::shared_ptr<Mesh> mesh : model->meshes)
+	for (std::shared_ptr<Mesh> mesh : meshes)
 	{
 		cAABB temp = CalculateAABB(mesh->vertices);
 
@@ -373,12 +396,12 @@ cAABB PhysicsObject::CalculateModelAABB()
 
 glm::vec3 PhysicsObject::GetPosition()
 {
-	return model->transform.position;
+	return transform.position;
 }
 
 void PhysicsObject::SetPosition(const glm::vec3& Position)
 {
-	model->transform.position = Position;
+	transform.position = Position;
 }
 
 const std::function<void(PhysicsObject*)>& PhysicsObject::GetCollisionCall()

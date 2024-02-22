@@ -20,7 +20,7 @@ enum ObjectMode
 };
 
 
-class PhysicsObject
+class PhysicsObject  : public Model
 {
 public:
 	PhysicsObject();
@@ -28,9 +28,14 @@ public:
 	~PhysicsObject();
 
 	
-	
+	 void DrawProperties() override;
+	 void SceneDraw() override;
 
-	Model* model;
+	 void Start() override;
+	 void Update(float deltaTime) override;
+	 void OnDestroy();
+
+	//Model* model;
 	PhysicsType physicsType;
 	ObjectMode mode =STATIC;
 	glm::vec3 position = glm::vec3(0.0f);

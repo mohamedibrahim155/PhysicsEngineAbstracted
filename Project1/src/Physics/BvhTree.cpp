@@ -6,7 +6,7 @@ BvhTree::BvhTree(PhysicsObject* physicsObject)
 	this->physicsObject = physicsObject;
 
 
-    root = new BvhNode(physicsObject->aabb, physicsObject->listoftriangles, {}, 0, nullptr, physicsObject->model);
+    root = new BvhNode(physicsObject->aabb, physicsObject->listoftriangles, {}, 0, nullptr, physicsObject);
    // root = BuildBVH(physicsObject->GetModelAABB(), physicsObject->listoftriangles);
 }
 
