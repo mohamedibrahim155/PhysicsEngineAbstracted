@@ -1,6 +1,6 @@
 #include "PhysicsObject.h"
 #include "../Triangle.h"
-
+#include "PhysicsEngine.h"
 
 std::vector<glm::vec3> collisionPoint;
 std::vector<glm::vec3> collisionNormal;
@@ -10,13 +10,15 @@ PhysicsObject::PhysicsObject(Model* model)
 	this->model = model;
 	acceleration = glm::vec3(0.0f);
 	
-
+	
 }
 
 PhysicsObject::PhysicsObject()
 {
 
 	acceleration = glm::vec3(0.0f);
+
+	PhysicsEngine::GetInstance().RemovePhysicsObject(this);
 
 }
 
@@ -337,6 +339,7 @@ void PhysicsObject::Initialize(PhysicsType physicsType, bool collision, ObjectMo
 		BvhAABBTree = new BvhTree(this);
 	}
 	
+	PhysicsEngine::GetInstance().AddPhysicsObjects(this);
 }
 
 

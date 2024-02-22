@@ -84,9 +84,7 @@ private:
 	Shader* stencilShader;
 	Shader* skyboxShader;
 
-	PhysicsEngine PhysicsEngine;
-	PanelManager* panelManager;
-
+	
 	SkyboxMaterial* skyBoxMaterial;
 
 	Model* skyBoxModel;

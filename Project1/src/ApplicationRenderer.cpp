@@ -257,7 +257,16 @@ void ApplicationRenderer::Start()
    //  PhysicsObject* SpherePhyiscs = new PhysicsObject(Sphere);
    //  SpherePhyiscs->Initialize(false, true, DYNAMIC);
 
-   //  PhysicsEngine.AddPhysicsObjects(SpherePhyiscs);
+     Model* sphereModel = new Model(*DebugModels::GetInstance().defaultSphere);
+     GraphicsRender::GetInstance().AddModelAndShader(sphereModel, defaultShader);
+
+     PhysicsObject* ballModel = new PhysicsObject(sphereModel);
+
+     ballModel->model = sphereModel;
+
+     ballModel->Initialize(SPHERE, true, DYNAMIC);
+
+
 
   
 
@@ -508,7 +517,10 @@ void ApplicationRenderer::PostRender()
 {
    // glDisable(GL_BLEND);
 
- //   PhysicsEngine.UpdatePhysics(deltaTime);
+    if (isPlayMode)
+    {
+        PhysicsEngine::GetInstance().Update(Time::GetInstance().deltaTime);
+    }
 }
 
 void ApplicationRenderer::Clear()

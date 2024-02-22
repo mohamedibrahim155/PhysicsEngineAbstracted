@@ -11,6 +11,7 @@ public:
 	PhysicsEngine();
 	~PhysicsEngine();
 
+	static PhysicsEngine& GetInstance();
 	float timer = 0;
 	float fixedTimeStep = 0.01f;
 	

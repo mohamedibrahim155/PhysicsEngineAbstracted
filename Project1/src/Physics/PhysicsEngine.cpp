@@ -13,6 +13,12 @@ PhysicsEngine::~PhysicsEngine()
 {
 }
 
+PhysicsEngine& PhysicsEngine::GetInstance()
+{
+    static PhysicsEngine instance;
+    return instance;
+}
+
 void PhysicsEngine::AddPhysicsObjects(PhysicsObject* objs)
 {
 
@@ -85,6 +91,7 @@ void PhysicsEngine::UpdatePhysics(float deltatime)
         glm::vec3 predictedPos = physicsObjects[i]->GetPosition() + deltaVelocity;
 
         physicsObjects[i]->position = predictedPos;
+
         physicsObjects[i]->SetPosition(physicsObjects[i]->position);
 
         for (size_t j = 0; j < physicsObjects.size(); j++)
