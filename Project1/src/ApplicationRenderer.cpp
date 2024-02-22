@@ -116,29 +116,27 @@ void ApplicationRenderer::WindowInitialize(int width, int height,  std::string w
    
     GraphicsRender::GetInstance().InitializeGraphics();
 
-    DebugModels::GetInstance().defaultCube = new Model("Models/DefaultCube/DefaultCube.fbx", true, true);
-    DebugModels::GetInstance().defaultSphere = new Model("Models/DefaultSphere/DefaultSphere.fbx", true, true);
-    DebugModels::GetInstance().defaultQuad = new Model("Models/DefaultQuad/DefaultQuad.fbx", true, true);
+    DebugModels::GetInstance().defaultCube = new Model("Models/DefaultCube/DefaultCube.fbx", false, true);
+    DebugModels::GetInstance().defaultSphere = new Model("Models/DefaultSphere/DefaultSphere.fbx", false, true);
+    DebugModels::GetInstance().defaultQuad = new Model("Models/DefaultQuad/DefaultQuad.fbx", false, true);
 
     InitializeSkybox();
 
     GraphicsRender::GetInstance().SetCamera(sceneViewcamera);
 
     sceneViewcamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    sceneViewcamera->transform.position = glm::vec3(0, 0, -10.0f);
+    sceneViewcamera->transform.position = glm::vec3(0, 0, - 1.0f);
 
     gameScenecamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    gameScenecamera->transform.position = glm::vec3(0, 0, -10.0f);
+    gameScenecamera->transform.position = glm::vec3(0, 0, -1.0f);
 
     renderTextureCamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    renderTextureCamera->transform.position = glm::vec3(0, 0, -10.0f);
+    renderTextureCamera->transform.position = glm::vec3(0, 0, -1.0f);
 
     renderTextureCamera->IntializeRenderTexture(specification);
    // renderTextureCamera->IntializeRenderTexture(new RenderTexture());
   
     isImguiPanelsEnable = true;
-
-    
 }
 
 void ApplicationRenderer::InitializeShaders()
@@ -168,7 +166,6 @@ void ApplicationRenderer::InitializeShaders()
 void ApplicationRenderer::InitializeSkybox()
 {
     skyBoxModel = new Model("Models/DefaultCube/DefaultCube.fbx", false, true);
-    skyBoxModel->name = "SkyBox model";
     skyBoxModel->meshes[0]->meshMaterial = new SkyboxMaterial();
 
     skyBoxMaterial = skyBoxModel->meshes[0]->meshMaterial->skyboxMaterial();
@@ -198,6 +195,31 @@ void ApplicationRenderer::Start()
 
     gameScenecamera->postprocessing->InitializePostProcessing();
 
+    Model* floor = new Model((char*)"Models/Floor/Floor.fbx");
+    floor->transform.SetRotation(glm::vec3(90, 0, 0));
+    floor->transform.SetPosition(glm::vec3(0, -2, 0));
+   
+    Model* floor2 = new Model(*floor);
+    floor2->transform.SetRotation(glm::vec3(90, 0, 0));
+    floor2->transform.SetPosition(glm::vec3(0, 2, 0));
+   
+   
+    Model* floor3 = new Model(*floor);
+   
+    floor3->transform.SetPosition(glm::vec3(-2, 0, 0));
+    Model* floor4 = new Model(*floor);
+    floor4->transform.SetPosition(glm::vec3(2, 0, 0));
+    floor4->meshes[0]->meshMaterial->material()->useMaskTexture = false;
+    floor4->meshes[0]->meshMaterial->material()->SetBaseColor(glm::vec4(1, 1, 1, 0.5f));
+
+    
+    
+
+
+     Model* directionLightModel = new Model("Models/DefaultSphere/Sphere_1_unit_Radius.ply",false, true);
+     directionLightModel->transform.SetScale(glm::vec3(0.5f));
+    // Model* spotlight = new Model(*Sphere);
+     //spotlight->transform.SetPosition(glm::vec3(-2.0f, 0.0f, -3.0f));
 
      Light* directionLight = new Light();
      directionLight->Initialize(LightType::DIRECTION_LIGHT, 1);
@@ -207,34 +229,37 @@ void ApplicationRenderer::Start()
      directionLight->SetAttenuation(1, 1, 0.01f);
      directionLight->SetInnerAndOuterCutoffAngle(11, 12);
 
-     directionLight->transform.SetPosition(glm::vec3(0, 5, 20));
-     directionLight->transform.SetRotation(glm::vec3(0, -130, 0));
-     directionLight->transform.SetScale(glm::vec3(0.2));
+     directionLight->transform.SetRotation(glm::vec3(0, 0, 5));
+     directionLight->transform.SetPosition(glm::vec3(0, 0, 5));
     
- 
+    
+     Model* plant = new Model("Models/Plant.fbm/Plant.fbx");
+     Texture* plantAlphaTexture = new Texture();
 
- 
-
-     PhysicsObject* ballPhysics = new PhysicsObject();
-     ballPhysics->name = "BallPhysics";
-     ballPhysics->LoadModel(*(DebugModels::GetInstance().defaultSphere));
-     ballPhysics->transform.SetPosition(glm::vec3(0, 3, 0));
-     ballPhysics->transform.SetScale(glm::vec3(0.25f));
-     GraphicsRender::GetInstance().AddModelAndShader(ballPhysics, defaultShader);
-
-     ballPhysics->Initialize(SPHERE, true, DYNAMIC);
+     Model* quadWithTexture = new Model("Models/DefaultQuad/DefaultQuad.fbx");
+     quadWithTexture->transform.SetPosition(glm::vec3(5, 0, 0));
+     quadWithTexture->meshes[0]->meshMaterial->material()->diffuseTexture = renderTextureCamera->renderTexture;
 
 
-     PhysicsObject* floor = new PhysicsObject();
-     floor->name = "Floor Physics";
-     floor->LoadModel("Models/Floor/Floor.fbx");
-     floor->transform.SetRotation(glm::vec3(90,0,0));
-     floor->transform.SetPosition(glm::vec3(0,-2,0));
 
+     GraphicsRender::GetInstance().AddModelAndShader(plant, alphaCutoutShader);
+     GraphicsRender::GetInstance().AddModelAndShader(quadWithTexture, alphaCutoutShader);
      GraphicsRender::GetInstance().AddModelAndShader(floor, defaultShader);
-     floor->Initialize(AABB, true, STATIC);
+     GraphicsRender::GetInstance().AddModelAndShader(floor2, defaultShader);
+     GraphicsRender::GetInstance().AddModelAndShader(floor3, defaultShader);
+     GraphicsRender::GetInstance().AddModelAndShader(floor4, alphaBlendShader);
+ 
+     //LightRenderer
+     //LightManager::GetInstance().AddLight(directionLight);
+    // lightManager.AddLight(directionLight);
+   //  lightManager.AddNewLight(spot);
+   //  lightManager.SetUniforms(defaultShader->ID);
+   //  PhysicsObject* SpherePhyiscs = new PhysicsObject(Sphere);
+   //  SpherePhyiscs->Initialize(false, true, DYNAMIC);
 
+   //  PhysicsEngine.AddPhysicsObjects(SpherePhyiscs);
 
+  
 
 }
 
@@ -347,12 +372,12 @@ void ApplicationRenderer::EngineGraphicsRender()
 
 
     /*sceneViewframeBuffer->Bind();
-   
-    //GraphicsRender::GetInstance().Clear();
-    //PreRender();
-    //GraphicsRender::GetInstance().Draw();
 
-    //sceneViewframeBuffer->Unbind();*/
+    GraphicsRender::GetInstance().Clear();
+    PreRender();
+    GraphicsRender::GetInstance().Draw();
+
+    sceneViewframeBuffer->Unbind();*/
     RenderForCamera(sceneViewcamera, sceneViewframeBuffer);
 
 
@@ -483,10 +508,6 @@ void ApplicationRenderer::PostRender()
 {
    // glDisable(GL_BLEND);
 
-    if (isPlayMode)
-    {
-        PhysicsEngine::GetInstance().Update(Time::GetInstance().deltaTime);
-    }
 }
 
 void ApplicationRenderer::Clear()

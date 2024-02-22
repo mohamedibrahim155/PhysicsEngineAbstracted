@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Camera.h"
 #include "CameraManager.h"
-
+#include "GraphicsRender.h"
 
 Camera::Camera()
 {
@@ -285,4 +285,8 @@ void Camera::SceneDraw()
     Entity::SceneDraw();
    // postprocessing.SceneDraw();
 
+}
+
+void Camera::Render()
+{
 }

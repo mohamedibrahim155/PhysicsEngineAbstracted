@@ -443,6 +443,10 @@ std::shared_ptr<Mesh> Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
      }
  }
 
+ void Model::Render()
+ {
+ }
+
  void Model::Start()
  {
     

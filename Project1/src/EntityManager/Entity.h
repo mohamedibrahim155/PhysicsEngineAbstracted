@@ -24,8 +24,8 @@ public:
 	virtual void Start() = 0;
 	virtual void Update(float deltaTime) = 0;
 	virtual void OnDestroy() = 0;
-
-	 virtual void Destroy();
+	virtual void Render() = 0;
+	virtual void Destroy();
 
 	 //Inherited from Object
 	 virtual void DrawProperties();

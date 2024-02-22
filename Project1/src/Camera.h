@@ -108,7 +108,7 @@ public:
         // Inherited via object
         void DrawProperties() override;
         void SceneDraw() override;
-
+        void Render() override;
 private:
     glm::mat4 projectionMatrix;
     float aspectRatio;

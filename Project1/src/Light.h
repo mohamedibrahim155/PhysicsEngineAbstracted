@@ -48,6 +48,7 @@ public:
     void Start() override;
     void Update(float deltaTime) override;
     void OnDestroy() override;
+    void Render() override;
 
     LightType lightType;
 private:

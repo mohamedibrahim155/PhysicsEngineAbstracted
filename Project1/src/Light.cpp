@@ -190,4 +190,8 @@ void Light::OnDestroy()
 {
 }
 
+void Light::Render()
+{
+}
+
 

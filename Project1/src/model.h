@@ -65,6 +65,7 @@ public:
 
     virtual void Start() override;
     virtual void Update(float deltaTime) override;
+    virtual void Render() override;
     virtual void OnDestroy();
 private:
     
@@ -82,6 +83,10 @@ private:
     const std::string alphaTextureDefaultPath = "Textures/DefaultTextures/Opacity_Default.png";
 
     // Inherited via Entity
+
+
+    // Inherited via Entity
+  
 
 };
 

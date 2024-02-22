@@ -1,5 +1,6 @@
 #include "GraphicsRender.h"
 #include "DebugModels.h"
+#include "EntityManager/EntityManager.h"
 GraphicsRender::GraphicsRender()
 {
 }
@@ -157,6 +158,7 @@ void GraphicsRender::Draw()
 		GLCALL(glStencilFunc(GL_ALWAYS, 0, 0xFF));
 	}
 
+	EntityManager::GetInstance().Render();
 }
 
 void GraphicsRender::Clear()
