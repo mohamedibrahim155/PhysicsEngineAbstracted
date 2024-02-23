@@ -173,7 +173,7 @@ const std::vector<cAABB>& PhysicsObject::GetCollisionAABBs()
 	return collisionAABBs;
 }
 
-bool PhysicsObject::checkCollision(PhysicsObject* other, std::vector<glm::vec3>& collisionPoints, std::vector<glm::vec3>& collisionNormals)
+bool PhysicsObject::CheckCollision(PhysicsObject* other, std::vector<glm::vec3>& collisionPoints, std::vector<glm::vec3>& collisionNormals)
 
 {
 

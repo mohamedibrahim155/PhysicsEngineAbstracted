@@ -27,7 +27,33 @@ public:
 	PhysicsObject(Model* model);
 	~PhysicsObject();
 
-	
+	PhysicsType physicsType;
+	ObjectMode mode = STATIC;
+
+	glm::vec3 position = glm::vec3(0.0f);
+	glm::vec3 velocity = glm::vec3(0);
+	glm::vec3 acceleration;
+
+	bool isKinematic;
+	bool collisionCallbool;
+	bool isBvhActive = true;
+
+	float gravityValue = 0.1f;
+	float inverseMass = 1.0f;
+	float bounciness = 0.8f;
+	float mass = 1.0f;
+
+	std::function<void(PhysicsObject*)> collisionCallback = nullptr;
+	std::vector<cSphere*>  triangleSpheres;
+	std::vector<cAABB>  collisionAABBs;
+	std::vector<Triangle> listoftriangles;
+
+	cAABB aabb;
+	cSphere sphereShape;
+	BvhTree* BvhAABBTree;
+
+	void Initialize(PhysicsType physicsType = PhysicsType::AABB, bool collision = false, ObjectMode mode = ObjectMode::STATIC);
+
 	 void DrawProperties() override;
 	 void SceneDraw() override;
 
@@ -35,57 +61,34 @@ public:
 	 void Update(float deltaTime) override;
 	 void OnDestroy();
 	 void Render() override;
-	//Model* model;
-	PhysicsType physicsType;
-	ObjectMode mode =STATIC;
-	glm::vec3 position = glm::vec3(0.0f);
-	bool isKinematic;
-	bool collisionCallbool;
-	void update(float deltatime);
-	cAABB UpdateAABB();
-	cSphere UpdateSphere();
-	void CalculateTriangle();
-	std::function<void(PhysicsObject*)> collisionCallback = nullptr;
-	std::vector<Triangle> listoftriangles;
-	 std::vector<cSphere*>  triangleSpheres;
-	 std::vector<cAABB>  collisionAABBs;
 
+	 void update(float deltatime);
+	 void CalculateTriangle();
+	 void SetPosition(const glm::vec3& Position);
+	 void DoCollisionCall(const std::function<void(PhysicsObject*)>& collisionCallback);
+	 void SetMass(const float& massValue);
+	
+	cAABB UpdateAABB();
 	cAABB GetModelAABB();
+	cAABB CalculateModelAABB();
+
+	cSphere UpdateSphere();
+
+	bool CheckCollision(PhysicsObject* other, std::vector<glm::vec3>& collisionPoints, std::vector<glm::vec3>& collisionNormals);
 	
 	std::vector<Triangle> GetModelTriangleList();
 	const std::vector<cAABB>& GetCollisionAABBs();
 
+	const std::function<void(PhysicsObject*)>& GetCollisionCall();
 	//bool checkCollision( PhysicsObject& other);
-	bool checkCollision(PhysicsObject* other, std::vector<glm::vec3>& collisionPoints, std::vector<glm::vec3>& collisionNormals);
-	glm::vec3 velocity = glm::vec3(0);
-	glm::vec3 acceleration;
-	float gravityValue=0.1f;
-	void Initialize(PhysicsType physicsType = PhysicsType::AABB , bool collision = false,ObjectMode mode = ObjectMode::STATIC);
-
-	cAABB aabb;
-	cSphere sphereShape;
-	BvhTree* BvhAABBTree;
-	bool isBvhActive = true;
-
-	cAABB CalculateModelAABB();
-	
 	glm::vec3 GetPosition();
 
-	void SetPosition(const glm::vec3& Position);
-	const std::function<void(PhysicsObject*)>& GetCollisionCall();
-	void DoCollisionCall(const std::function<void(PhysicsObject*)>& collisionCallback);
-	float inverseMass = 1.0f;
-	float bounciness = 0.8f;
-	float mass = 1.0f;
-	void SetMass(const float& massValue);
 
 private:
 
-	
 
 	void DrawPhysicsObjectProperties();
 
-	
 	float renderRadius = 0.01;
 
 };

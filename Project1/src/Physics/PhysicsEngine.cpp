@@ -108,7 +108,7 @@ void PhysicsEngine::UpdatePhysics(float deltatime)
             {
                 std::vector<glm::vec3> perObjectCollisions;
                 std::vector<glm::vec3> perObjectNormals;
-                if (physicsObjects[i]->checkCollision(physicsObjects[j], perObjectCollisions, perObjectNormals))
+                if (physicsObjects[i]->CheckCollision(physicsObjects[j], perObjectCollisions, perObjectNormals))
                 {
                     collisionPoints.insert(collisionPoints.end(), perObjectCollisions.begin(), perObjectCollisions.end());
                     collisionNormals.insert(collisionNormals.end(), perObjectNormals.begin(), perObjectNormals.end());
