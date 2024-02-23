@@ -145,6 +145,7 @@
     <ClCompile Include="Extern\imGui\ImGradient.cpp" />
     <ClCompile Include="Extern\imGui\ImGuizmo.cpp" />
     <ClCompile Include="Extern\imGui\ImSequencer.cpp" />
+    <ClCompile Include="src\Physics\SoftBody\SoftbodyObject.cpp" />
     <ClCompile Include="src\Math.cpp" />
     <ClCompile Include="src\Physics\BvhNode.cpp" />
     <ClCompile Include="src\Physics\BvhTree.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="Extern\imGui\ImGuizmo.h" />
     <ClInclude Include="Extern\imGui\ImSequencer.h" />
     <ClInclude Include="Extern\imGui\ImZoomSlider.h" />
+    <ClInclude Include="src\Physics\SoftBody\SoftbodyObject.h" />
     <ClInclude Include="src\Math.h" />
     <ClInclude Include="src\Physics\BvhNode.h" />
     <ClInclude Include="src\Physics\BvhTree.h" />

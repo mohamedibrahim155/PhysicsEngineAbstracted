@@ -51,6 +51,28 @@ void PhysicsEngine::RemoveAllPhysicsObject()
     }
 }
 
+void PhysicsEngine::AddSoftBodyObject(SoftbodyObject* objs)
+{
+    softbodyObjects.push_back(objs);
+}
+
+void PhysicsEngine::RemoveSoftBodyObject(SoftbodyObject* objs)
+{
+    std::vector<SoftbodyObject*> ::iterator it = std::find(softbodyObjects.begin(), 
+        softbodyObjects.end(), objs);
+
+    if (it != softbodyObjects.end())
+    {
+
+        softbodyObjects.erase(it);
+    }
+    else
+    {
+        std::cout << "Softbody object not found in the vector." << std::endl;
+    }
+
+}
+
 
 
 
@@ -160,6 +182,11 @@ void PhysicsEngine::UpdatePhysics(float deltatime)
                 << "    Pos Z: " << physicsObjects[i]->velocity.z << std::endl;*/
         }
     }
+}
+
+void PhysicsEngine::UpdateVerlet(float deltatime)
+{
+
 }
 
 

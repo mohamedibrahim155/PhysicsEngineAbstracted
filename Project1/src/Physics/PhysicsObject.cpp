@@ -8,13 +8,15 @@ std::vector<glm::vec3> collisionNormal;
 PhysicsObject::PhysicsObject(Model* model)
 {
 	//this->model = model;
+	name = "Physics Object";
+
 	acceleration = glm::vec3(0.0f);
-	
 	
 }
 
 PhysicsObject::PhysicsObject()
 {
+	name = "Physics Object";
 
 	acceleration = glm::vec3(0.0f);
 }

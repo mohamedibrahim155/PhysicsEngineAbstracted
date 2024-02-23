@@ -235,6 +235,17 @@ void ApplicationRenderer::Start()
     floor->Initialize(AABB, true, STATIC);
 
 
+    SoftbodyObject* softBodyTest1 = new SoftbodyObject();
+    softBodyTest1->name = "SoftbodySphere1";
+    softBodyTest1->LoadModel("Models/DefaultCube/DefaultCube.fbx");
+    softBodyTest1->isVisible = false;
+    softBodyTest1->transform.SetPosition(glm::vec3(0, 1, 0));
+    GraphicsRender::GetInstance().AddModelAndShader(softBodyTest1, defaultShader);
+
+    softBodyTest1->Initialize();
+
+
+
 
 }
 

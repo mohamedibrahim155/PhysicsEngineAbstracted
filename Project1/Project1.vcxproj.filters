@@ -216,6 +216,9 @@
     <ClCompile Include="src\Physics\PhysicsCollisionTypes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Physics\SoftBody\SoftbodyObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Shader.h">
@@ -435,6 +438,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Physics\BvhTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\SoftBody\SoftbodyObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

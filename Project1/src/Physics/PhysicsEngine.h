@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "PhysicsObject.h"
-
+#include"SoftBody/SoftbodyObject.h"
 
 
 
@@ -19,16 +19,21 @@ public:
 	void AddPhysicsObjects(PhysicsObject* objs);
 	void RemovePhysicsObject(PhysicsObject* objs);
 	void RemoveAllPhysicsObject();
+
+	void AddSoftBodyObject(SoftbodyObject* objs);
+	void RemoveSoftBodyObject(SoftbodyObject* objs);
+
 	void Update(float deltaTime);
 	void UpdatePhysics(float deltatime);
-	std::vector<PhysicsObject*> physicsObjects;
+	void UpdateVerlet(float deltatime);
+
+
 	std::vector<glm::vec3> collisionPoints;
 	std::vector<glm::vec3> collisionNormals;
-
-
-
+	std::vector<SoftbodyObject*> softbodyObjects;
 
 private:
+	std::vector<PhysicsObject*> physicsObjects;
 
 };
 
