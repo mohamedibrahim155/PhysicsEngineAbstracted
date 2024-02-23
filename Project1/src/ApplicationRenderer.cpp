@@ -19,12 +19,12 @@ ApplicationRenderer::~ApplicationRenderer()
 
 
 
-void ApplicationRenderer::WindowInitialize(int width, int height,  std::string windowName)
+void ApplicationRenderer::WindowInitialize(int width, int height, std::string windowName)
 {
     windowWidth = width;
     WindowHeight = height;
     lastX = windowWidth / 2.0f;
-    lastY= WindowHeight / 2.0f;
+    lastY = WindowHeight / 2.0f;
 
     glfwInit();
 
@@ -63,23 +63,23 @@ void ApplicationRenderer::WindowInitialize(int width, int height,  std::string w
         {
             static_cast<ApplicationRenderer*>(glfwGetWindowUserPointer(window))->MouseScroll(window, xoffset, yoffset);
         });
-   
-   
+
+
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.FontGlobalScale = 2.0f;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForOpenGL(this->window, true);
     ImGui_ImplOpenGL3_Init("#version 450");
-   // ImGui_ImplOpenGL3_Init("#version 130");
+    // ImGui_ImplOpenGL3_Init("#version 130");
 
-    //Init GLAD
+     //Init GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -91,10 +91,10 @@ void ApplicationRenderer::WindowInitialize(int width, int height,  std::string w
     if (version) {
         std::cout << "OpenGL Version: " << version << std::endl;
     }
-    else 
+    else
     {
         std::cerr << "Failed to retrieve OpenGL version\n";
-     
+
     }
 
 
@@ -103,40 +103,42 @@ void ApplicationRenderer::WindowInitialize(int width, int height,  std::string w
     specification.width = windowWidth;
     specification.height = WindowHeight;
     specification.attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::DEPTH };
-    
+
 
     sceneViewframeBuffer = new FrameBuffer(specification);
 
     gameframeBuffer = new FrameBuffer(specification);
 
     EditorLayout::GetInstance().applicationRenderer = this;
-  
+
 
     InitializeShaders();
-   
+
     GraphicsRender::GetInstance().InitializeGraphics();
 
-    DebugModels::GetInstance().defaultCube = new Model("Models/DefaultCube/DefaultCube.fbx", false, true);
-    DebugModels::GetInstance().defaultSphere = new Model("Models/DefaultSphere/DefaultSphere.fbx", false, true);
-    DebugModels::GetInstance().defaultQuad = new Model("Models/DefaultQuad/DefaultQuad.fbx", false, true);
+    DebugModels::GetInstance().defaultCube = new Model("Models/DefaultCube/DefaultCube.fbx", true, true);
+    DebugModels::GetInstance().defaultSphere = new Model("Models/DefaultSphere/DefaultSphere.fbx", true, true);
+    DebugModels::GetInstance().defaultQuad = new Model("Models/DefaultQuad/DefaultQuad.fbx", true, true);
 
     InitializeSkybox();
 
     GraphicsRender::GetInstance().SetCamera(sceneViewcamera);
 
     sceneViewcamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    sceneViewcamera->transform.position = glm::vec3(0, 0, - 1.0f);
+    sceneViewcamera->transform.position = glm::vec3(0, 0, -10.0f);
 
     gameScenecamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    gameScenecamera->transform.position = glm::vec3(0, 0, -1.0f);
+    gameScenecamera->transform.position = glm::vec3(0, 0, -10.0f);
 
     renderTextureCamera->InitializeCamera(CameraType::PERSPECTIVE, 45.0f, 0.1f, 100.0f);
-    renderTextureCamera->transform.position = glm::vec3(0, 0, -1.0f);
+    renderTextureCamera->transform.position = glm::vec3(0, 0, -10.0f);
 
     renderTextureCamera->IntializeRenderTexture(specification);
-   // renderTextureCamera->IntializeRenderTexture(new RenderTexture());
-  
+    // renderTextureCamera->IntializeRenderTexture(new RenderTexture());
+
     isImguiPanelsEnable = true;
+
+
 }
 
 void ApplicationRenderer::InitializeShaders()
@@ -157,15 +159,16 @@ void ApplicationRenderer::InitializeShaders()
 
     GraphicsRender::GetInstance().defaultShader = defaultShader;
     GraphicsRender::GetInstance().solidColorShader = solidColorShader;
-    GraphicsRender::GetInstance().stencilShader = stencilShader; 
+    GraphicsRender::GetInstance().stencilShader = stencilShader;
 
-   
+
 
 }
 
 void ApplicationRenderer::InitializeSkybox()
 {
     skyBoxModel = new Model("Models/DefaultCube/DefaultCube.fbx", false, true);
+    skyBoxModel->name = "SkyBox model";
     skyBoxModel->meshes[0]->meshMaterial = new SkyboxMaterial();
 
     skyBoxMaterial = skyBoxModel->meshes[0]->meshMaterial->skyboxMaterial();
@@ -195,71 +198,43 @@ void ApplicationRenderer::Start()
 
     gameScenecamera->postprocessing->InitializePostProcessing();
 
-    Model* floor = new Model((char*)"Models/Floor/Floor.fbx");
+
+    Light* directionLight = new Light();
+    directionLight->Initialize(LightType::DIRECTION_LIGHT, 1);
+    directionLight->SetAmbientColor(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+    directionLight->SetColor(glm::vec4(1, 1, 1, 1.0f));
+    directionLight->SetAttenuation(1, 1, 0.01f);
+    directionLight->SetInnerAndOuterCutoffAngle(11, 12);
+
+    directionLight->transform.SetPosition(glm::vec3(0, 5, 20));
+    directionLight->transform.SetRotation(glm::vec3(0, -130, 0));
+    directionLight->transform.SetScale(glm::vec3(0.2));
+
+
+
+
+
+    PhysicsObject* ballPhysics = new PhysicsObject();
+    ballPhysics->name = "BallPhysics";
+    ballPhysics->LoadModel(*(DebugModels::GetInstance().defaultSphere));
+    ballPhysics->transform.SetPosition(glm::vec3(0, 3, 0));
+    ballPhysics->transform.SetScale(glm::vec3(0.25f));
+    GraphicsRender::GetInstance().AddModelAndShader(ballPhysics, defaultShader);
+
+    ballPhysics->Initialize(SPHERE, true, DYNAMIC);
+
+
+    PhysicsObject* floor = new PhysicsObject();
+    floor->name = "Floor Physics";
+    floor->LoadModel("Models/Floor/Floor.fbx");
     floor->transform.SetRotation(glm::vec3(90, 0, 0));
     floor->transform.SetPosition(glm::vec3(0, -2, 0));
-   
-    Model* floor2 = new Model(*floor);
-    floor2->transform.SetRotation(glm::vec3(90, 0, 0));
-    floor2->transform.SetPosition(glm::vec3(0, 2, 0));
-   
-   
-    Model* floor3 = new Model(*floor);
-   
-    floor3->transform.SetPosition(glm::vec3(-2, 0, 0));
-    Model* floor4 = new Model(*floor);
-    floor4->transform.SetPosition(glm::vec3(2, 0, 0));
-    floor4->meshes[0]->meshMaterial->material()->useMaskTexture = false;
-    floor4->meshes[0]->meshMaterial->material()->SetBaseColor(glm::vec4(1, 1, 1, 0.5f));
 
-    
-    
+    GraphicsRender::GetInstance().AddModelAndShader(floor, defaultShader);
+    floor->Initialize(AABB, true, STATIC);
 
 
-     Model* directionLightModel = new Model("Models/DefaultSphere/Sphere_1_unit_Radius.ply",false, true);
-     directionLightModel->transform.SetScale(glm::vec3(0.5f));
-    // Model* spotlight = new Model(*Sphere);
-     //spotlight->transform.SetPosition(glm::vec3(-2.0f, 0.0f, -3.0f));
-
-     Light* directionLight = new Light();
-     directionLight->Initialize(LightType::DIRECTION_LIGHT, 1);
-     directionLight->SetAmbientColor(glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
-
-     directionLight->SetColor(glm::vec4(1, 1, 1, 1.0f));
-     directionLight->SetAttenuation(1, 1, 0.01f);
-     directionLight->SetInnerAndOuterCutoffAngle(11, 12);
-
-     directionLight->transform.SetRotation(glm::vec3(0, 0, 5));
-     directionLight->transform.SetPosition(glm::vec3(0, 0, 5));
-    
-    
-     Model* plant = new Model("Models/Plant.fbm/Plant.fbx");
-     Texture* plantAlphaTexture = new Texture();
-
-     Model* quadWithTexture = new Model("Models/DefaultQuad/DefaultQuad.fbx");
-     quadWithTexture->transform.SetPosition(glm::vec3(5, 0, 0));
-     quadWithTexture->meshes[0]->meshMaterial->material()->diffuseTexture = renderTextureCamera->renderTexture;
-
-
-
-     GraphicsRender::GetInstance().AddModelAndShader(plant, alphaCutoutShader);
-     GraphicsRender::GetInstance().AddModelAndShader(quadWithTexture, alphaCutoutShader);
-     GraphicsRender::GetInstance().AddModelAndShader(floor, defaultShader);
-     GraphicsRender::GetInstance().AddModelAndShader(floor2, defaultShader);
-     GraphicsRender::GetInstance().AddModelAndShader(floor3, defaultShader);
-     GraphicsRender::GetInstance().AddModelAndShader(floor4, alphaBlendShader);
- 
-     //LightRenderer
-     //LightManager::GetInstance().AddLight(directionLight);
-    // lightManager.AddLight(directionLight);
-   //  lightManager.AddNewLight(spot);
-   //  lightManager.SetUniforms(defaultShader->ID);
-   //  PhysicsObject* SpherePhyiscs = new PhysicsObject(Sphere);
-   //  SpherePhyiscs->Initialize(false, true, DYNAMIC);
-
-   //  PhysicsEngine.AddPhysicsObjects(SpherePhyiscs);
-
-  
 
 }
 
@@ -270,7 +245,7 @@ void ApplicationRenderer::PreRender()
     view = sceneViewcamera->GetViewMatrix();
 
     skyBoxView = glm::mat4(glm::mat3(sceneViewcamera->GetViewMatrix()));
-  
+
 
     defaultShader->Bind();
     LightManager::GetInstance().UpdateUniformValuesToShader(defaultShader);
@@ -321,22 +296,22 @@ void ApplicationRenderer::PreRender()
 
 void ApplicationRenderer::Render()
 {
-   
+
     Start();
-  
+
     EditorLayout::GetInstance().InitializeEditors();
 
     Time::GetInstance().lastFrame = glfwGetTime();
-   // glEnable(GL_BLEND);
-  //  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   
+    // glEnable(GL_BLEND);
+   //  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     while (!glfwWindowShouldClose(window))
     {
 
         Time::GetInstance().SetCurrentTime(glfwGetTime());
-       
-      
-       // scrollTime += Time::GetInstance().deltaTime;
+
+
+        // scrollTime += Time::GetInstance().deltaTime;
 
         EngineGameLoop();
 
@@ -368,37 +343,37 @@ void ApplicationRenderer::EngineGraphicsRender()
         PanelManager::GetInstance().Update((float)windowWidth, (float)WindowHeight);
     }
 
-   
+
 
 
     /*sceneViewframeBuffer->Bind();
 
-    GraphicsRender::GetInstance().Clear();
-    PreRender();
-    GraphicsRender::GetInstance().Draw();
+    //GraphicsRender::GetInstance().Clear();
+    //PreRender();
+    //GraphicsRender::GetInstance().Draw();
 
-    sceneViewframeBuffer->Unbind();*/
+    //sceneViewframeBuffer->Unbind();*/
     RenderForCamera(sceneViewcamera, sceneViewframeBuffer);
 
 
-  /*  RenderForCamera(gameScenecamera, gameframeBuffer);
+    /*  RenderForCamera(gameScenecamera, gameframeBuffer);
 
-    RenderForCamera(renderTextureCamera, renderTextureCamera->renderTexture->framebuffer);*/
+      RenderForCamera(renderTextureCamera, renderTextureCamera->renderTexture->framebuffer);*/
 
 
-    for (Camera* camera :  CameraManager::GetInstance().GetCameras())
+    for (Camera* camera : CameraManager::GetInstance().GetCameras())
     {
         if (camera->renderTexture == nullptr)
         {
             RenderForCamera(camera, gameframeBuffer);                  // GAME SCENE CAMERA
 
-           
+
         }
         else
         {
-            RenderForCamera(camera, camera->renderTexture->framebuffer); 
+            RenderForCamera(camera, camera->renderTexture->framebuffer);
         }
-       
+
     }
 
     //gameframeBuffer->Bind();
@@ -426,11 +401,11 @@ void ApplicationRenderer::EngineGameLoop()
 void ApplicationRenderer::RenderForCamera(Camera* camera, FrameBuffer* framebuffer)
 {
 
-  /*  sceneViewframeBuffer->Bind();
+    /*  sceneViewframeBuffer->Bind();
 
-    GraphicsRender::GetInstance().Clear();
-    PreRender();
-    GraphicsRender::GetInstance().Draw();*/
+      GraphicsRender::GetInstance().Clear();
+      PreRender();
+      GraphicsRender::GetInstance().Draw();*/
 
 
     framebuffer->Bind();
@@ -485,7 +460,7 @@ void ApplicationRenderer::RenderForCamera(Camera* camera, FrameBuffer* framebuff
     GraphicsRender::GetInstance().SkyBoxModel->Draw(*skyboxShader);
     glDepthFunc(GL_LESS);
 
-    
+
     /* ScrollShader->Bind();
        ScrollShader->setMat4("ProjectionMatrix", _projection);*/
 
@@ -495,7 +470,7 @@ void ApplicationRenderer::RenderForCamera(Camera* camera, FrameBuffer* framebuff
 
     if (camera->isPostprocessing)
     {
-       // if (camera->postprocessing.isPostProccesingEnabled)
+        // if (camera->postprocessing.isPostProccesingEnabled)
         {
             camera->postprocessing->ApplyPostprocessing(framebuffer);
         }
@@ -506,15 +481,19 @@ void ApplicationRenderer::RenderForCamera(Camera* camera, FrameBuffer* framebuff
 }
 void ApplicationRenderer::PostRender()
 {
-   // glDisable(GL_BLEND);
+    // glDisable(GL_BLEND);
 
+    if (isPlayMode)
+    {
+        PhysicsEngine::GetInstance().Update(Time::GetInstance().deltaTime);
+    }
 }
 
 void ApplicationRenderer::Clear()
 {
     GLCALL(glClearColor(0.1f, 0.1f, 0.1f, 0.1f));
     GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-   //glStencilMask(0x00);
+    //glStencilMask(0x00);
 }
 
 void ApplicationRenderer::ProcessInput(GLFWwindow* window)
@@ -522,7 +501,7 @@ void ApplicationRenderer::ProcessInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    float cameraSpeed=25;
+    float cameraSpeed = 25;
 
     if (EditorLayout::GetInstance().IsViewportHovered())
     {
@@ -550,82 +529,82 @@ void ApplicationRenderer::ProcessInput(GLFWwindow* window)
 }
 
 
- void ApplicationRenderer::SetViewPort(GLFWwindow* window, int width, int height)
+void ApplicationRenderer::SetViewPort(GLFWwindow* window, int width, int height)
 {
- //   glViewport(0, 0, width, height);
+    //   glViewport(0, 0, width, height);
 }
 
- void ApplicationRenderer::KeyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
- {  
-         if (key == GLFW_KEY_V && action == GLFW_PRESS)
-         {
-
-            
-             std::cout << "V pressed" << std::endl;
-
-             std::vector<Model*> listOfModels = GraphicsRender::GetInstance().GetModelList();
-            
-          
-
-             selectedModelCount++;
-
-             if (selectedModelCount > listOfModels.size()-1)
-             {
-                 selectedModelCount = 0;
-             }
-
-            
-             GraphicsRender::GetInstance().selectedModel = listOfModels[selectedModelCount];
+void ApplicationRenderer::KeyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+    {
 
 
-         }
-     
-         if (action == GLFW_PRESS)
-         {
-             InputManager::GetInstance().OnKeyPressed(key);
-         }
-         else if(action == GLFW_RELEASE)
-         {
-             InputManager::GetInstance().OnKeyReleased(key);
-         }
-         else if (action == GLFW_REPEAT)
-         {
-             InputManager::GetInstance().OnkeyHold(key);
-         }
-     
- }
+        std::cout << "V pressed" << std::endl;
 
- void ApplicationRenderer::MouseCallBack(GLFWwindow* window, double xposIn, double yposIn)
- {
+        std::vector<Model*> listOfModels = GraphicsRender::GetInstance().GetModelList();
 
-    float xpos = static_cast<float>(xposIn);
-        float ypos = static_cast<float>(yposIn);
-     
-        if (firstMouse)
+
+
+        selectedModelCount++;
+
+        if (selectedModelCount > listOfModels.size() - 1)
         {
-
+            selectedModelCount = 0;
         }
 
-         if (firstMouse)
-         {
-             lastX = xpos;
-             lastY = ypos;
-             firstMouse = false;
-         }
-     
-         float xoffset = xpos - lastX;
-         float yoffset = lastY - ypos;
-     
-         lastX = xpos;
-         lastY = ypos;
-     
-         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && EditorLayout::GetInstance().IsViewportHovered())
-         {
-             sceneViewcamera->ProcessMouseMovement(xoffset, yoffset);
-         }
- }
 
- void ApplicationRenderer::MouseScroll(GLFWwindow* window, double xoffset, double yoffset)
- {
-     sceneViewcamera->ProcessMouseScroll(static_cast<float>(yoffset));
- }
+        GraphicsRender::GetInstance().selectedModel = listOfModels[selectedModelCount];
+
+
+    }
+
+    if (action == GLFW_PRESS)
+    {
+        InputManager::GetInstance().OnKeyPressed(key);
+    }
+    else if (action == GLFW_RELEASE)
+    {
+        InputManager::GetInstance().OnKeyReleased(key);
+    }
+    else if (action == GLFW_REPEAT)
+    {
+        InputManager::GetInstance().OnkeyHold(key);
+    }
+
+}
+
+void ApplicationRenderer::MouseCallBack(GLFWwindow* window, double xposIn, double yposIn)
+{
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse)
+    {
+
+    }
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && EditorLayout::GetInstance().IsViewportHovered())
+    {
+        sceneViewcamera->ProcessMouseMovement(xoffset, yoffset);
+    }
+}
+
+void ApplicationRenderer::MouseScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    sceneViewcamera->ProcessMouseScroll(static_cast<float>(yoffset));
+}

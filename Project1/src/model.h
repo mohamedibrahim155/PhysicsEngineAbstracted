@@ -65,7 +65,7 @@ public:
 
     virtual void Start() override;
     virtual void Update(float deltaTime) override;
-    virtual void Render() override;
+    virtual void Render();
     virtual void OnDestroy();
 private:
     

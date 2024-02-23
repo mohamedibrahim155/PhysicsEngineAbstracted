@@ -168,22 +168,22 @@ void GraphicsRender::Clear()
 	GLCALL(glStencilMask(0x00));
 }
 
-void GraphicsRender::DrawSphere(glm::vec3 center, float radius, glm::vec4 color)
+void GraphicsRender::DrawSphere(glm::vec3 center, float radius, glm::vec4 color, bool isWireFrame)
 {
 	Model* model = new Model(*(DebugModels::GetInstance().defaultSphere), true);
 
 	model->transform.SetPosition(center);
 	model->transform.SetScale(glm::vec3(radius));
-	model->DrawSolidColor(color);
+	model->DrawSolidColor(color,isWireFrame);
 
 }
 
-void GraphicsRender::DrawBox(glm::vec3 center, glm::vec3 dimensions, glm::vec4 color)
+void GraphicsRender::DrawBox(glm::vec3 center, glm::vec3 dimensions, glm::vec4 color, bool isWireFrame)
 {
 	Model* model = new Model(*(DebugModels::GetInstance().defaultCube), true);
 	model->transform.SetPosition(center);
 	model->transform.SetScale(dimensions);
-	model->DrawSolidColor(color, true);
+	model->DrawSolidColor(color, isWireFrame);
 }
 
 

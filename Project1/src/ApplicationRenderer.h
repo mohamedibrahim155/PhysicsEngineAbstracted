@@ -27,7 +27,7 @@
 #include "EntityManager/EntityManager.h"
 #include "CameraManager.h"
 
-
+#include "Physics/PhysicsEngine.h"
 class ApplicationRenderer
 {
 public:

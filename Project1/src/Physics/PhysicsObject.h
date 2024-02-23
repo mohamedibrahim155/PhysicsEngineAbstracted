@@ -6,9 +6,9 @@
 
 enum PhysicsType
 {
-	SPHERE,
-	AABB,
-	MESH_TRIANGLES,
+	SPHERE = 0,
+	AABB = 1,
+	MESH_TRIANGLES = 2, 
 	//MESH
 };
 
@@ -34,7 +34,7 @@ public:
 	 void Start() override;
 	 void Update(float deltaTime) override;
 	 void OnDestroy();
-
+	 void Render() override;
 	//Model* model;
 	PhysicsType physicsType;
 	ObjectMode mode =STATIC;
@@ -86,7 +86,7 @@ private:
 	void DrawPhysicsObjectProperties();
 
 	
-
+	float renderRadius = 0.01;
 
 };
 

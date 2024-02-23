@@ -17,14 +17,11 @@ PhysicsObject::PhysicsObject()
 {
 
 	acceleration = glm::vec3(0.0f);
-
-	PhysicsEngine::GetInstance().RemovePhysicsObject(this);
-
 }
 
 PhysicsObject::~PhysicsObject()
 {
-	//delete model;
+	PhysicsEngine::GetInstance().RemovePhysicsObject(this);
 }
 
 void PhysicsObject::DrawProperties()
@@ -51,6 +48,34 @@ void PhysicsObject::Update(float deltaTime)
 
 void PhysicsObject::OnDestroy()
 {
+}
+
+void PhysicsObject::Render()
+{
+	switch (physicsType)
+	{
+	case SPHERE:
+		GraphicsRender::GetInstance().DrawSphere(UpdateSphere().center, UpdateSphere().radius+renderRadius, glm::vec4(0, 0.6f, 0, 1),true);
+		break;
+	case AABB:
+		glm::vec3 center = (UpdateAABB().minV + UpdateAABB().maxV) * 0.5f;
+
+		glm::vec3 scale;
+
+		
+		glm::vec3 extents = (UpdateAABB().maxV - UpdateAABB().minV) * 0.5f;
+
+		scale.x = extents.x * 1.0f;
+		scale.y = extents.y * 1.0f;
+		scale.z = extents.z * 1.0f;
+
+		GraphicsRender::GetInstance().DrawBox(center, scale, glm::vec4(0, 0.6f, 0, 1), true);
+		break;
+	case MESH_TRIANGLES:
+		break;
+	default:
+		break;
+	}
 }
 
 void PhysicsObject::update(float deltatime)
@@ -450,26 +475,12 @@ void PhysicsObject::DrawPhysicsObjectProperties()
 
 	ImGui::Text("Physics Type");
 	ImGui::SameLine();
-	const char* physicsTypeOptions[] = { "AABB", "SPHERE" };
+	const char* physicsTypeOptions[] = { "SPHERE", "AABB" };
 	ImGui::SetNextItemWidth(200);
-	if (!ImGui::Combo("##Physics Type", reinterpret_cast<int*>(&physicsType), physicsTypeOptions, IM_ARRAYSIZE(physicsTypeOptions)))
+	/*if (!ImGui::Combo("##Physics Type", reinterpret_cast<int*>(&physicsType), physicsTypeOptions, IM_ARRAYSIZE(physicsTypeOptions)))
 	{
-		switch (physicsType)
-		{
-		case SPHERE:
-			GraphicsRender::GetInstance().DrawSphere(glm::vec3(0,1,0), 5, glm::vec4(1, 0, 0, 1));
-			break;
-		case AABB:
-			//	GraphicsRender::GetInstance().DrawBox(this->GetModelAABB()., this->transform.scale, glm::vec4(0, 1, 0, 1));
 
-			break;
-		case MESH_TRIANGLES:
-			break;
-		default:
-			break;
-		}
-
-	}
+	}*/
 	
 	ImGui::Text("Bouciness");
 	ImGui::SameLine();
