@@ -32,6 +32,10 @@ public:
 	SoftbodyObject();
 	~SoftbodyObject();
 
+	bool isSoftBodyActive = true;
+
+	float acceleration = 2 /*-9.81f*/;
+
 
 	std::vector<Triangle> listOfTriangles;
 	std::vector<Point*> listOfPoints;
@@ -50,6 +54,12 @@ public:
 	void Update(float deltaTime) override;
 	void Render() override;
 	void OnDestroy() override;
+
+	void UpdateVerlet(float deltaTime);
+	void UpdateSticks(float deltaTime);
+	void UpdateVertices();
+
+	void CleanZeros(glm::vec3& value);
 
 private:
 	float PointsDistance(Point* pointA, Point* pointB);

@@ -84,6 +84,7 @@ void PhysicsEngine::Update(float deltaTime)
 	if (timer >= fixedTimeStep)
 	{
 		UpdatePhysics(deltaTime);
+        UpdateVerlet(deltaTime);
 
 		timer = 0;
 	}
@@ -186,7 +187,12 @@ void PhysicsEngine::UpdatePhysics(float deltatime)
 
 void PhysicsEngine::UpdateVerlet(float deltatime)
 {
+    for (SoftbodyObject* object : softbodyObjects)
+    {
+        if (!object->isSoftBodyActive) continue;
 
+        object->UpdateVerlet(deltatime);
+    }
 }
 
 

@@ -9,6 +9,7 @@ public:
 	~VertexBuffer();
 	void Bind();
 	void Unbind();
+	void UpdateVertexData(unsigned int size, const void* data);
 
 private:
 	unsigned int m_RendererID;

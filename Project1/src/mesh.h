@@ -60,7 +60,7 @@ public:
     bool isWireFrame = false;
     std::string name;
 
-
+    void UpdateVertices();
 private:
     
     //unsigned int VBO, EBO;

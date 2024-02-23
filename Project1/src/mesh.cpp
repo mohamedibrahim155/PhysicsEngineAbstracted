@@ -122,6 +122,14 @@ void Mesh::TextureScrolling(const bool& isScroll)
 
 }
 
+void Mesh::UpdateVertices()
+{
+    VAO->Bind();
+    VBO->UpdateVertexData(vertices.size() * sizeof(Vertex), &vertices[0]);
+    VAO->AddBuffer(*VBO, *layout);
+    VAO->Unbind();
+}
+
 void Mesh::SetupMesh()
 {
     CalculateTriangles();
