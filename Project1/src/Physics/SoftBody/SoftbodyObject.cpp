@@ -406,6 +406,20 @@ void SoftbodyObject::UpdateVertices()
 	for (Point* point : listOfPoints)
 	{
 		point->vertex->Position = point->position;
+
+
+		//glm::vec4 vertex2Matrix = glm::vec4(point->position.x,
+		//	point->position.y,
+		//	point->position.z, 1.0f);
+
+		//vertex2Matrix = transform.GetModelInverseMatrix() * vertex2Matrix;
+
+		//vertex2Matrix = transform.GetModelMatrix() * vertex2Matrix;
+
+
+		//point->vertex->Position.x = vertex2Matrix.x;
+		//point->vertex->Position.y = vertex2Matrix.y;
+		//point->vertex->Position.z = vertex2Matrix.z;
 	}
 
 	//UpdateNormals();
