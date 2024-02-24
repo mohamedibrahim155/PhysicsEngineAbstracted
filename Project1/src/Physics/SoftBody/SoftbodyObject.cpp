@@ -59,15 +59,35 @@ void SoftbodyObject::CalculateTriangles()
 
 void SoftbodyObject::CalculateVertex()
 {
+
+
 	listOfPoints.clear();
 
 	for (std::shared_ptr<Mesh> mesh : meshes)
 	{
-		//std::vector<Point*> particleList;
+		
+
+		for (size_t index = 0; index < mesh->vertices.size(); index++)
+		{
+			glm::vec4 vertexMatrix = glm::vec4(mesh->vertices[index].Position.x,
+				mesh->vertices[index].Position.y,
+				mesh->vertices[index].Position.z, 1.0f);
+
+			vertexMatrix = transform.GetModelMatrix() * vertexMatrix;
+
+
+			mesh->vertices[index].Position.x = vertexMatrix.x;
+			mesh->vertices[index].Position.y = vertexMatrix.y;
+			mesh->vertices[index].Position.z = vertexMatrix.z;
+
+
+		}
+
+
 
 		listOfPoints.reserve(mesh->vertices.size());
 
-		for (Vertex vertex : mesh->vertices)
+		for (Vertex& vertex : mesh->vertices)
 		{
 			Point* temp = new Point();
 
@@ -80,7 +100,7 @@ void SoftbodyObject::CalculateVertex()
 
 
 
-		for (size_t i = 0; i < mesh->indices.size(); i+=3)
+		for (size_t i = 0; i < mesh->indices.size(); i += 3)
 		{
 			Triangle tempTri;
 
@@ -93,6 +113,9 @@ void SoftbodyObject::CalculateVertex()
 				mesh->vertices[mesh->indices[i + 2]].Normal) / 3.0f;
 		
 			tempTri.CalculateMidpoint();
+			listOfTriangles.push_back(tempTri);
+
+
 
 			Point* point1 = listOfPoints[mesh->indices[i]];
 			Point* point2 = listOfPoints[mesh->indices[i +1]];
@@ -102,23 +125,22 @@ void SoftbodyObject::CalculateVertex()
 			edge1->pointA = point1;
 			edge1->pointB = point2;
 			edge1->restLength = glm::distance(edge1->pointA->position , edge1->pointB->position);
+			listOfSticks.push_back(edge1);
 
 			Stick* edge2 = new Stick();
 			edge2->pointA = point2;
 			edge2->pointB = point3;
 			edge2->restLength = glm::distance(edge2->pointA->position, edge2->pointB->position);
+			listOfSticks.push_back(edge2);
 
 			Stick* edge3 = new Stick();
 			edge3->pointA = point3;
 			edge3->pointB = point1;
 			edge2->restLength = glm::distance(edge3->pointA->position, edge3->pointB->position);
-
-
-			listOfTriangles.push_back(tempTri);
-
-			listOfSticks.push_back(edge1);
-			listOfSticks.push_back(edge2);
 			listOfSticks.push_back(edge3);
+
+
+
 
 		}
 
@@ -194,7 +216,13 @@ void SoftbodyObject::Render()
 	{
 		for (Point* point : listOfPoints)
 		{
-			GraphicsRender::GetInstance().DrawSphere(point->position, 0.1f, glm::vec4(0, 1, 1, 1), true);
+			GraphicsRender::GetInstance().DrawSphere(point->position, renderRadius, glm::vec4(0, 1, 1, 1), true);
+		}
+
+		for (Stick* stick: listOfSticks )
+		{
+			GraphicsRender::GetInstance().DrawLine(stick->pointA->position, stick->pointB->position, glm::vec4(1, 1, 0, 1));
+
 		}
 	}
 	
@@ -206,27 +234,12 @@ void SoftbodyObject::OnDestroy()
 
 void SoftbodyObject::UpdateVerlet(float deltaTime)
 {
-	for (Point* point : listOfPoints)
-	{
-		if (!point->locked)
-		{
-			glm::vec3 currentPosition = point->position;
-			//glm::vec3 prevPosition = point->previousPosition;
-
-			point->position += point->position - point->previousPosition;
-			point->position += glm::vec3(0, -1, 0) * acceleration * (deltaTime * deltaTime);
-
-			point->previousPosition = currentPosition;
-
-			CleanZeros(point->position);
-			CleanZeros(point->previousPosition);
-		}
-		
-	}
-
 	
+	UpdatePoints(deltaTime);
 
-	UpdateSticks(deltaTime);
+	CollisionTest();
+
+	//UpdateSticks(deltaTime);
 	//UpdateVertices();
 }
 
@@ -238,31 +251,107 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 	{
 		for (Stick* stick : listOfSticks)
 		{
-			Point* pX1 = stick->pointA;
-			Point* pX2 = stick->pointB;
-
-			glm::vec3 delta = pX2->position - pX1->position;
-			float deltaLength = glm::length(delta);
-
-			//if (deltaLength!=0)
+			if (stick->isActive)
 			{
-				float diff = (deltaLength - stick->restLength) / deltaLength;
 
-				float tightnessFactor = 0.5f;
+				Point* pointA = stick->pointA;
+				Point* pointB = stick->pointB;
+				//// FEENEYS's
+				glm::vec3 delta = pointB->position - pointA->position;
+				float deltaLength = glm::length(delta);
 
-				pX1->position += delta * 0.5f * diff * tightnessFactor;
-				pX2->position -= delta * 0.5f * diff * tightnessFactor;
+				if (deltaLength != 0)
+				{
+					float diff = (deltaLength - stick->restLength) / deltaLength;
 
-				CleanZeros(pX1->position);
-				CleanZeros(pX2->position);
+					if (diff > 0.01f)
+					{
+						stick->isActive = false;
+					}
+					const float tightnessFactor = 1.0f;
+
+					pointA->position += delta * 0.5f * diff * tightnessFactor;
+					pointB->position -= delta * 0.5f * diff * tightnessFactor;
+
+					CleanZeros(pointA->position);
+					CleanZeros(pointB->position);
+				}
+
+
+				//SEBASTIAN's
+				//glm::vec3 centre = (pointA->position + pointB->position) * 0.5f;
+
+				//glm::vec3 direction = glm::normalize(pointA->position - pointB->position);
+
+				//if (glm::length(direction)!=0)
+				//{
+				//	if (!pointA->locked)
+				//	{
+				//		stick->pointA->position = centre + direction * (stick->restLength * 0.5f);
+				//	}
+
+				//	if (!pointB->locked)
+				//	{
+				//		stick->pointB->position = centre - direction * (stick->restLength *0.5f );
+				//	}
+
+				//}
+
+
 			}
-
-
-
-
 		
 		}
 	}
+
+}
+
+void SoftbodyObject::UpdatePoints(float deltaTime)
+{
+	if (deltaTime > MAX_DELTATIME)
+	{
+		deltaTime = MAX_DELTATIME;
+	}
+
+	for (Point* point : listOfPoints)
+	{
+		if (!point->locked)
+		{
+			glm::vec3 currentPosition = point->position;
+			glm::vec3 prevPosition = point->previousPosition;
+
+			glm::vec3 direction = currentPosition - prevPosition;
+
+			
+				point->position += (direction) + (glm::vec3(0, -acceleration, 0) * (float)(deltaTime * deltaTime));
+
+				point->previousPosition = currentPosition;
+
+				/*point->position += (point->position - point->previousPosition);
+
+				point->position += downVector * acceleration * (deltaTime * deltaTime);
+
+				point->previousPosition = currentPosition;*/
+
+				CleanZeros(point->position);
+				CleanZeros(point->previousPosition);
+				
+		}
+
+	}
+
+}
+
+void SoftbodyObject::CollisionTest()
+{
+	for (Point* point : listOfPoints)
+	{
+		if (point->position.y < -5.0f)
+		{
+			point->position.y = -5.0f;
+		}
+	}
+
+//	return;
 
 }
 
@@ -286,10 +375,100 @@ void SoftbodyObject::CleanZeros(glm::vec3& value)
 
 void SoftbodyObject::UpdateVertices()
 {
+	for (Point* point : listOfPoints)
+	{
+		point->vertex->Position = point->position;
+	}
+
+	//UpdateNormals();
+
 	for (std::shared_ptr<Mesh> mesh: meshes)
 	{
 		mesh->UpdateVertices();
 	}
+}
+
+void SoftbodyObject::UpdateNormals()
+{
+	for (std::shared_ptr<Mesh> mesh : meshes)
+	{
+
+		for (size_t i = 0; i < mesh->vertices.size(); i++)
+		{
+			mesh->vertices[i].Normal = glm::vec3(0);
+		}
+	}
+
+	for (std::shared_ptr<Mesh> mesh : meshes)
+	{
+		for (size_t i = 0; i < mesh->triangle.size(); i++)
+		{
+			unsigned int vertAIndex = mesh->indices[i + 0];
+			unsigned int vertBIndex = mesh->indices[i + 1];
+			unsigned int vertCIndex = mesh->indices[i + 2];
+
+
+			Vertex& vertexA = mesh->vertices[vertAIndex];
+			Vertex& vertexB = mesh->vertices[vertBIndex];
+			Vertex& vertexC = mesh->vertices[vertCIndex];
+
+			glm::vec3 vertA = vertexA.Position;
+			glm::vec3 vertB = vertexB.Position;
+			glm::vec3 vertC = vertexC.Position;
+
+			glm::vec3 triangleEdgeAtoB = vertB - vertA;
+			glm::vec3 triangleEdgeAtoC = vertC - vertA;
+
+
+			glm::vec3 normal = glm::normalize(glm::cross(triangleEdgeAtoB, triangleEdgeAtoC));
+
+			//normal = glm::normalize(normal);
+
+			if (glm::length(normal)!=0)
+			{
+				vertexA.Normal.x += normal.x;
+				vertexA.Normal.y += normal.y;
+				vertexA.Normal.z += normal.z;
+
+				vertexB.Normal.x += normal.x;
+				vertexB.Normal.y += normal.y;
+				vertexB.Normal.z += normal.z;
+
+				vertexC.Normal.x += normal.x;
+				vertexC.Normal.y += normal.y;
+				vertexC.Normal.z += normal.z;
+			}
+
+			
+
+		}
+		
+	}
+
+
+	for (std::shared_ptr<Mesh> mesh : meshes)
+	{
+
+		/*for (size_t i = 0; i < mesh->vertices.size(); i++)
+		{
+			glm::vec3 normal = glm::vec3(mesh->vertices[i].Normal.x,
+				mesh->vertices[i].Normal.y,
+				mesh->vertices[i].Normal.z);
+
+			normal = glm::normalize(normal);
+
+			if (glm::length(normal) != 0)
+			{
+				mesh->vertices[i].Normal.x = normal.x;
+				mesh->vertices[i].Normal.y = normal.y;
+				mesh->vertices[i].Normal.z = normal.z;
+			}
+			
+
+		}*/
+	}
+	
+
 }
 
 float SoftbodyObject::PointsDistance(Point* pointA, Point* pointB)
