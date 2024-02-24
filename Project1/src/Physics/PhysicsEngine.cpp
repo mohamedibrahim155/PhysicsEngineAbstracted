@@ -83,7 +83,7 @@ void PhysicsEngine::Update(float deltaTime)
 
 	if (timer >= fixedTimeStep)
 	{
-		UpdatePhysics(deltaTime);
+		//UpdatePhysics(deltaTime);
         UpdateVerlet(deltaTime);
 
 		timer = 0;

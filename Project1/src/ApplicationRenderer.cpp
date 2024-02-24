@@ -238,8 +238,9 @@ void ApplicationRenderer::Start()
     SoftbodyObject* softBodyTest1 = new SoftbodyObject();
     softBodyTest1->name = "SoftbodySphere1";
     softBodyTest1->LoadModel("Models/Plane/Plane.ply");
-    softBodyTest1->isVisible = false;
-    softBodyTest1->transform.SetPosition(glm::vec3(0, 1, 0));
+    softBodyTest1->isVisible = true;
+    softBodyTest1->transform.SetPosition(glm::vec3(0, 2, 0));
+    softBodyTest1->transform.SetScale(glm::vec3(5));
     GraphicsRender::GetInstance().AddModelAndShader(softBodyTest1, defaultShader);
 
     softBodyTest1->Initialize();

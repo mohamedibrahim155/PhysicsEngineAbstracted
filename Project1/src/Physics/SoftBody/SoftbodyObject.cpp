@@ -124,19 +124,19 @@ void SoftbodyObject::CalculateVertex()
 			Stick* edge1 = new Stick();
 			edge1->pointA = point1;
 			edge1->pointB = point2;
-			edge1->restLength = glm::distance(edge1->pointA->position , edge1->pointB->position);
+			edge1->restLength = glm::distance(point1->position, point2->position);
 			listOfSticks.push_back(edge1);
 
 			Stick* edge2 = new Stick();
 			edge2->pointA = point2;
 			edge2->pointB = point3;
-			edge2->restLength = glm::distance(edge2->pointA->position, edge2->pointB->position);
+			edge2->restLength = glm::distance(point2->position, point3->position);
 			listOfSticks.push_back(edge2);
 
 			Stick* edge3 = new Stick();
 			edge3->pointA = point3;
 			edge3->pointB = point1;
-			edge2->restLength = glm::distance(edge3->pointA->position, edge3->pointB->position);
+			edge3->restLength = glm::distance(point3->position, point1->position);
 			listOfSticks.push_back(edge3);
 
 
@@ -239,8 +239,9 @@ void SoftbodyObject::UpdateVerlet(float deltaTime)
 
 	CollisionTest();
 
-	//UpdateSticks(deltaTime);
-	//UpdateVertices();
+	UpdateSticks(deltaTime);
+
+	UpdateVertices();
 }
 
 void SoftbodyObject::UpdateSticks(float deltaTime)
@@ -260,21 +261,21 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 				glm::vec3 delta = pointB->position - pointA->position;
 				float deltaLength = glm::length(delta);
 
-				if (deltaLength != 0)
+				//if (deltaLength != 0)
 				{
 					float diff = (deltaLength - stick->restLength) / deltaLength;
 
-					if (diff > 0.01f)
+					if (diff > 0.1f)
 					{
-						stick->isActive = false;
+						//stick->isActive = false;
 					}
-					const float tightnessFactor = 1.0f;
+					const float tightnessFactor = 1;
 
 					pointA->position += delta * 0.5f * diff * tightnessFactor;
 					pointB->position -= delta * 0.5f * diff * tightnessFactor;
 
-					CleanZeros(pointA->position);
-					CleanZeros(pointB->position);
+					//CleanZeros(pointA->position);
+					//CleanZeros(pointB->position);
 				}
 
 
@@ -319,21 +320,21 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 			glm::vec3 currentPosition = point->position;
 			glm::vec3 prevPosition = point->previousPosition;
 
-			glm::vec3 direction = currentPosition - prevPosition;
+			/*glm::vec3 direction = currentPosition - prevPosition;
 
 			
 				point->position += (direction) + (glm::vec3(0, -acceleration, 0) * (float)(deltaTime * deltaTime));
 
-				point->previousPosition = currentPosition;
+				point->previousPosition = currentPosition;*/
 
-				/*point->position += (point->position - point->previousPosition);
+				point->position += (point->position - point->previousPosition);
 
 				point->position += downVector * acceleration * (deltaTime * deltaTime);
 
-				point->previousPosition = currentPosition;*/
+				point->previousPosition = currentPosition;
 
-				CleanZeros(point->position);
-				CleanZeros(point->previousPosition);
+				//CleanZeros(point->position);
+				//CleanZeros(point->previousPosition);
 				
 		}
 
@@ -343,11 +344,38 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 
 void SoftbodyObject::CollisionTest()
 {
+	//for (Point* point : listOfPoints)
+	//{
+	//	if (point->position.y < -5.0f)
+	//	{
+	//		point->position.y = -5.0f;
+	//	}
+	//}
+
+
 	for (Point* point : listOfPoints)
 	{
-		if (point->position.y < -5.0f)
+		glm::vec3 sphereCentre = glm::vec3(0.0f, -2, 0);
+		float sphereRadius = 1;
+
+		float distanceToSphere = glm::distance(point->position,
+			sphereCentre);
+		if (distanceToSphere < sphereRadius)
 		{
-			point->position.y = -5.0f;
+			// it's 'inside' the sphere
+			// Shift or slide the point along the ray from the centre of the sphere
+			glm::vec3 particleToCentreRay = point->position - sphereCentre;
+			// Normalize to get the direction
+			particleToCentreRay = glm::normalize(particleToCentreRay);
+
+
+			if (glm::length(particleToCentreRay)!=0)
+			{
+				point->position = (particleToCentreRay * sphereRadius) + sphereCentre;
+			}
+			
+		
+
 		}
 	}
 
