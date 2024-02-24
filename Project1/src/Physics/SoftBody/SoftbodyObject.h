@@ -1,7 +1,7 @@
 #pragma once
 #include "../../model.h"
 #include "../PhysicsCollisionTypes.h"
-
+#include"../PhysicsObject.h"
 
 struct Point
 {
@@ -16,6 +16,25 @@ struct Point
 	glm::vec3 previousPosition = glm::vec3(0);
 	Vertex* vertex = nullptr;
 	bool locked = false;
+	cSphere sphere;
+
+	cSphere UpdateSphere(const Transform& transform)
+	{
+		glm::vec3 originalCenter = sphere.center;
+		float orginalRadius = sphere.radius;
+		glm::mat4 transformMatrix = transform.GetModelMatrix();
+		glm::vec4 transformedCenter = transformMatrix * glm::vec4(originalCenter, 1.0f);
+
+		glm::mat4 scaleMatrix = glm::mat4(1.0f); // Initialize the scale matrix
+		scaleMatrix[0][0] = transform.scale.x;
+		scaleMatrix[1][1] = transform.scale.y;
+		scaleMatrix[2][2] = transform.scale.z;
+
+		float maxScale = glm::max(transform.scale.x, glm::max(transform.scale.y, transform.scale.z));
+		float updatedRadius = orginalRadius * maxScale;
+
+		return cSphere(glm::vec3(transformedCenter), updatedRadius);
+	}
 };
 
 struct Stick
@@ -67,13 +86,23 @@ public:
 
 	void CleanZeros(glm::vec3& value);
 
+	PhysicsObject* updateAABBTest = nullptr;
 private:
 	float PointsDistance(Point* pointA, Point* pointB);
 
-	bool isIntialised = false;
+	bool showDebug = true;
 	float renderRadius = 0.0025f;
+	float tightnessFactor = 1;
 
 	glm::vec3 downVector = glm::vec3(0, -1, 0);
 	const double MAX_DELTATIME = 1.0 / 60.0;
+
+	bool CheckSoftBodyAABBCollision(Point* point, const cAABB& aabb);
+	bool CheckSoftBodySphereCollision(Point* point, const cSphere& sphere);
+	void HandleSoftBodySphereCollision(Point*& point, const cSphere& sphere);
+	//bool CheckSoftBodyAABBCollision(const cAABB& aabb);
+
+	void handleSoftBodyAABBCollision(Point& particle, const cAABB& aabb);
+
 };
 

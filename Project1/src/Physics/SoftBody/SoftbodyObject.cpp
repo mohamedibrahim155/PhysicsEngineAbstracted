@@ -19,7 +19,6 @@ void SoftbodyObject::Initialize()
 {
 	//CalculateTriangles();
 	CalculateVertex();
-	isIntialised = true;
 
 	PhysicsEngine::GetInstance().AddSoftBodyObject(this);
 
@@ -94,6 +93,8 @@ void SoftbodyObject::CalculateVertex()
 			temp->position = vertex.Position;
 			temp->previousPosition = temp->position;
 			temp->vertex = &vertex;
+			temp->sphere.center = vertex.Position;
+			temp->sphere.radius = 0.025f;
 
 			listOfPoints.push_back(temp);
 		}
@@ -183,15 +184,25 @@ void SoftbodyObject::DrawProperties()
 		return;
 	}
 
+	ImGui::Text("Show Debug");
+	ImGui::SameLine();
+	ImGui::Checkbox("##ShowDebug" , &showDebug);
+	
+	ImGui::Text("tightnessFactor");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(150);
+	ImGui::InputFloat("##tightnessFactor", &tightnessFactor,0,0.1,"%.2f");
+
+	ImGui::NewLine();
 	for (int i = 0; i < listOfPoints.size(); ++i)
 	{
 		Point*& point = listOfPoints[i];
 
 		
-
+		ImGui::Text("locked");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::Checkbox(("locked##" + std::to_string(i)).c_str(), &point->locked);
+		ImGui::Checkbox(("##locked" + std::to_string(i)).c_str(), &point->locked);
 
 		ImGui::SetNextItemWidth(80);
 		ImGui::Text("points");
@@ -231,11 +242,11 @@ void SoftbodyObject::Update(float deltaTime)
 
 void SoftbodyObject::Render()
 {
-	//if (isIntialised)
+	if (showDebug)
 	{
 		for (Point* point : listOfPoints)
 		{
-			GraphicsRender::GetInstance().DrawSphere(point->position, renderRadius, glm::vec4(0, 1, 1, 1), true);
+			GraphicsRender::GetInstance().DrawSphere(point->UpdateSphere(transform).center, point->UpdateSphere(transform).radius, glm::vec4(0, 1, 1, 1), true);
 		}
 
 		for (Stick* stick: listOfSticks )
@@ -256,8 +267,8 @@ void SoftbodyObject::UpdateVerlet(float deltaTime)
 	
 	UpdatePoints(deltaTime);
 
-	CollisionTest();
 
+	CollisionTest();
 	UpdateSticks(deltaTime);
 
 	UpdateVertices();
@@ -277,29 +288,30 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 				Point* pointA = stick->pointA;
 				Point* pointB = stick->pointB;
 				//// FEENEYS's
-				//glm::vec3 delta = pointB->position - pointA->position;
-				//float deltaLength = glm::length(delta);
+				glm::vec3 delta = pointB->position - pointA->position;
+				float deltaLength = glm::length(delta);
 
-				////if (deltaLength != 0)
-				//{
-				//	float diff = (deltaLength - stick->restLength) / deltaLength;
+				//if (deltaLength != 0)
+				{
+					float diff = (deltaLength - stick->restLength) / deltaLength;
 
-				//	if (diff > 0.1f)
-				//	{
-				//		//stick->isActive = false;
-				//	}
-				//	const float tightnessFactor = 1;
+					if (diff > 0.1f)
+					{
+					///	stick->isActive = false;
+					}
+				
+					if (!pointA->locked) pointA->position += delta * 0.5f * diff * tightnessFactor;
+					
+					if (!pointB->locked) pointB->position -= delta * 0.5f * diff * tightnessFactor;
+				
 
-				//	pointA->position += delta * 0.5f * diff * tightnessFactor;
-				//	pointB->position -= delta * 0.5f * diff * tightnessFactor;
-
-				//	CleanZeros(pointA->position);
-				//	CleanZeros(pointB->position);
-				//}
+					CleanZeros(pointA->position);
+					CleanZeros(pointB->position);
+				}
 
 
 				//SEBASTIAN's
-				glm::vec3 centre = (pointA->position + pointB->position) * 0.5f;
+				/*glm::vec3 centre = (pointA->position + pointB->position) * 0.5f;
 
 				glm::vec3 direction = glm::normalize(pointA->position - pointB->position);
 
@@ -315,7 +327,7 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 						stick->pointB->position = centre - direction * (stick->restLength *0.5f );
 					}
 
-				}
+				}*/
 
 
 			}
@@ -346,9 +358,20 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 
 				point->previousPosition = currentPosition;*/
 
-				point->position += (point->position - point->previousPosition);
 
-				point->position += downVector * acceleration * (deltaTime * deltaTime);
+				/*if (CheckSoftBodyAABBCollision(point,updateAABBTest->UpdateAABB()))
+				{
+					std::cout << "CollisionDetected" << std::endl;
+					handleSoftBodyAABBCollision(*point, updateAABBTest->UpdateAABB());
+				}
+				else*/
+				{
+					point->position += (point->position - point->previousPosition);
+
+					point->position += downVector * acceleration * (deltaTime * deltaTime);
+
+				}
+
 
 				point->previousPosition = currentPosition;
 
@@ -371,32 +394,59 @@ void SoftbodyObject::CollisionTest()
 	//	}
 	//}
 
+	//for (Point* point : listOfPoints)
+	//{
+	//	/*if (CheckSoftBodyAABBCollision(point, updateAABBTest->UpdateAABB()))
+	//	{
+	//		handleSoftBodyAABBCollision(*point,updateAABBTest->UpdateAABB());
+	//		std::cout << "Collision Detected" << std::endl;
+	//	}*/
+	////	cSphere sphere = updateAABBTest->UpdateSphere();
+	//	//if (CheckSoftBodySphereCollision(point, sphere))
+	//	{
+	//		//std::cout << "sphere collission Detected" << std::endl;
 
-	for (Point* point : listOfPoints)
-	{
-		glm::vec3 sphereCentre = glm::vec3(0.0f, -2, 0);
-		float sphereRadius = 1;
-
-		float distanceToSphere = glm::distance(point->position,
-			sphereCentre);
-		if (distanceToSphere < sphereRadius)
-		{
-			// it's 'inside' the sphere
-			// Shift or slide the point along the ray from the centre of the sphere
-			glm::vec3 particleToCentreRay = point->position - sphereCentre;
-			// Normalize to get the direction
-			particleToCentreRay = glm::normalize(particleToCentreRay);
+	//		//glm::vec3 particleToCentreRay = point->position - updateAABBTest->UpdateSphere().center;
+	//		//// Normalize to get the direction
+	//		//particleToCentreRay = glm::normalize(particleToCentreRay);
 
 
-			if (glm::length(particleToCentreRay)!=0)
-			{
-				point->position = (particleToCentreRay * sphereRadius) + sphereCentre;
-			}
-			
-		
+	//		////if (glm::length(particleToCentreRay) != 0)
+	//		//{
+	//		//	point->position = (particleToCentreRay * updateAABBTest->UpdateSphere().radius) + updateAABBTest->UpdateSphere().center;
+	//		//}
+	//		std::cout << "Sphere collisiondetected" << std::endl;
+	//	//	HandleSoftBodySphereCollision(point, sphere);
+	//	}
+	//}
 
-		}
-	}
+	
+
+	//for (Point* point : listOfPoints)
+	//{
+	//	glm::vec3 sphereCentre = glm::vec3(0.0f, -2, 0);
+	//	float sphereRadius = 1;
+
+	//	float distanceToSphere = glm::distance(point->position,
+	//		sphereCentre);
+	//	if (distanceToSphere < sphereRadius)
+	//	{
+	//		// it's 'inside' the sphere
+	//		// Shift or slide the point along the ray from the centre of the sphere
+	//		glm::vec3 particleToCentreRay = point->position - sphereCentre;
+	//		// Normalize to get the direction
+	//		particleToCentreRay = glm::normalize(particleToCentreRay);
+
+
+	//		if (glm::length(particleToCentreRay)!=0)
+	//		{
+	//			point->position = (particleToCentreRay * sphereRadius) + sphereCentre;
+	//		}
+	//		
+	//	
+
+	//	}
+	//}
 
 //	return;
 
@@ -422,24 +472,24 @@ void SoftbodyObject::CleanZeros(glm::vec3& value)
 
 void SoftbodyObject::UpdateVertices()
 {
-	for (Point* point : listOfPoints)
-	{
-		//point->vertex->Position = point->position;
+
+	//for (Point* point : listOfPoints)
+	//{
+	//	point->vertex->Position = point->position;
 
 
-		glm::vec4 vertex2Matrix = glm::vec4(point->position.x,
-			point->position.y,
-			point->position.z, 1.0f);
+	//	glm::vec4 vertex2Matrix = glm::vec4(point->position, 1.0f);
+	//	glm::mat4 modelmatrix = transform.GetModelMatrix();
 
-		vertex2Matrix = transform.GetModelInverseMatrix() * vertex2Matrix;
+	//	vertex2Matrix = modelmatrix * vertex2Matrix;
 
-		//vertex2Matrix = transform.GetModelMatrix() * vertex2Matrix;
+	//	//vertex2Matrix = transform.GetModelMatrix() * vertex2Matrix;
 
 
-		point->vertex->Position.x = vertex2Matrix.x;
-		point->vertex->Position.y = vertex2Matrix.y;
-		point->vertex->Position.z = vertex2Matrix.z;
-	}
+	//	point->vertex->Position = glm::vec3(vertex2Matrix.x, vertex2Matrix.y, vertex2Matrix.z);
+	//	/*point->vertex->Position.y = vertex2Matrix.y;
+	//	point->vertex->Position.z = vertex2Matrix.z;*/
+	//}
 
 	//UpdateNormals();
 
@@ -535,4 +585,84 @@ void SoftbodyObject::UpdateNormals()
 float SoftbodyObject::PointsDistance(Point* pointA, Point* pointB)
 {
 	return glm::distance(pointA->position, pointB->position);
+}
+
+bool SoftbodyObject::CheckSoftBodyAABBCollision(Point* particle, const cAABB& aabb)
+{
+
+	return (
+		particle->position.x >= aabb.minV.x && particle->position.x <= aabb.maxV.x &&
+		particle->position.y >= aabb.minV.y && particle->position.y <= aabb.maxV.y &&
+		particle->position.z >= aabb.minV.z && particle->position.z <= aabb.maxV.z
+		);
+	
+}
+
+bool SoftbodyObject::CheckSoftBodySphereCollision(Point* point, const cSphere& sphere)
+{
+
+	float distance = glm::distance(point->position,	sphere.center);
+
+	return distance < sphere.radius;
+}
+
+void SoftbodyObject::HandleSoftBodySphereCollision(Point*& point, const cSphere& sphere)
+{
+	//float distance = glm::distance(point->position, sphere.center);
+
+	//if (distance < sphere.radius)
+	{
+		glm::vec3 particleToCentreRay = point->position - sphere.center;
+		// Normalize to get the direction
+		particleToCentreRay = glm::normalize(particleToCentreRay);
+
+
+		if (glm::length(particleToCentreRay) != 0)
+		{
+			point->position = (particleToCentreRay * sphere.radius) + sphere.center;
+		}
+	}
+	
+
+	//return;
+}
+
+void SoftbodyObject::handleSoftBodyAABBCollision(Point& point,const cAABB& aabb)
+{
+	//
+		/*if (point.position.x < aabb.minV.x)
+		{
+			point.position.x = aabb.minV.x;
+		}
+		else if (point.position.x > aabb.maxV.x) 
+		{
+			point.position.x = aabb.maxV.x;
+		}
+
+		if (point.position.y < aabb.minV.y) 
+		{
+			point.position.y = aabb.minV.y;
+		}
+		else if (point.position.y > aabb.maxV.y) 
+		{
+			point.position.y = aabb.maxV.y;
+		}
+
+		if (point.position.z < aabb.minV.z) 
+		{
+			point.position.z = aabb.minV.z;
+		}
+		else if (point.position.z > aabb.maxV.z) 
+		{
+			point.position.z = aabb.maxV.z;
+		}*/
+
+	point.position.x = glm::clamp(point.position.x, aabb.minV.x, aabb.maxV.x);
+	point.position.y = glm::clamp(point.position.y, aabb.minV.y, aabb.maxV.y);
+	point.position.z = glm::clamp(point.position.z, aabb.minV.z, aabb.maxV.z);
+
+	//point.position.y = glm::clamp(point.position.y, aabb.minV.y, aabb.maxV.y);
+		// 
+		// point.position = glm::vec
+		
 }
