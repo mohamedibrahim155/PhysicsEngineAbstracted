@@ -178,22 +178,41 @@ void SoftbodyObject::DrawProperties()
 {
     Model::DrawProperties();
 
-	for (Point* point : listOfPoints)
+	if (!ImGui::TreeNodeEx("Softbody properties", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		return;
+	}
+
+	for (int i = 0; i < listOfPoints.size(); ++i)
+	{
+		Point*& point = listOfPoints[i];
+
+		
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		ImGui::Checkbox(("locked##" + std::to_string(i)).c_str(), &point->locked);
+
 		ImGui::SetNextItemWidth(80);
 		ImGui::Text("points");
 
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat("x", &point->position.x);
+		ImGui::DragFloat(("x##" + std::to_string(i)).c_str(), &point->position.x);
 
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat("y", &point->position.x);
+		ImGui::DragFloat(("y##" + std::to_string(i)).c_str(), &point->position.y);
+
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat("z", &point->position.x);
+		ImGui::DragFloat(("z##" + std::to_string(i)).c_str(), &point->position.z);
+
+
 	}
+
+
+	ImGui::TreePop();
 }
 
 void SoftbodyObject::SceneDraw()
@@ -212,7 +231,7 @@ void SoftbodyObject::Update(float deltaTime)
 
 void SoftbodyObject::Render()
 {
-	if (isIntialised)
+	//if (isIntialised)
 	{
 		for (Point* point : listOfPoints)
 		{
@@ -258,45 +277,45 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 				Point* pointA = stick->pointA;
 				Point* pointB = stick->pointB;
 				//// FEENEYS's
-				glm::vec3 delta = pointB->position - pointA->position;
-				float deltaLength = glm::length(delta);
+				//glm::vec3 delta = pointB->position - pointA->position;
+				//float deltaLength = glm::length(delta);
 
-				//if (deltaLength != 0)
-				{
-					float diff = (deltaLength - stick->restLength) / deltaLength;
+				////if (deltaLength != 0)
+				//{
+				//	float diff = (deltaLength - stick->restLength) / deltaLength;
 
-					if (diff > 0.1f)
-					{
-						//stick->isActive = false;
-					}
-					const float tightnessFactor = 1;
+				//	if (diff > 0.1f)
+				//	{
+				//		//stick->isActive = false;
+				//	}
+				//	const float tightnessFactor = 1;
 
-					pointA->position += delta * 0.5f * diff * tightnessFactor;
-					pointB->position -= delta * 0.5f * diff * tightnessFactor;
+				//	pointA->position += delta * 0.5f * diff * tightnessFactor;
+				//	pointB->position -= delta * 0.5f * diff * tightnessFactor;
 
-					//CleanZeros(pointA->position);
-					//CleanZeros(pointB->position);
-				}
+				//	CleanZeros(pointA->position);
+				//	CleanZeros(pointB->position);
+				//}
 
 
 				//SEBASTIAN's
-				//glm::vec3 centre = (pointA->position + pointB->position) * 0.5f;
+				glm::vec3 centre = (pointA->position + pointB->position) * 0.5f;
 
-				//glm::vec3 direction = glm::normalize(pointA->position - pointB->position);
+				glm::vec3 direction = glm::normalize(pointA->position - pointB->position);
 
-				//if (glm::length(direction)!=0)
-				//{
-				//	if (!pointA->locked)
-				//	{
-				//		stick->pointA->position = centre + direction * (stick->restLength * 0.5f);
-				//	}
+				if (glm::length(direction)!=0)
+				{
+					if (!pointA->locked)
+					{
+						stick->pointA->position = centre + direction * (stick->restLength * 0.5f);
+					}
 
-				//	if (!pointB->locked)
-				//	{
-				//		stick->pointB->position = centre - direction * (stick->restLength *0.5f );
-				//	}
+					if (!pointB->locked)
+					{
+						stick->pointB->position = centre - direction * (stick->restLength *0.5f );
+					}
 
-				//}
+				}
 
 
 			}
@@ -333,8 +352,8 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 
 				point->previousPosition = currentPosition;
 
-				//CleanZeros(point->position);
-				//CleanZeros(point->previousPosition);
+				CleanZeros(point->position);
+				CleanZeros(point->previousPosition);
 				
 		}
 
@@ -405,21 +424,21 @@ void SoftbodyObject::UpdateVertices()
 {
 	for (Point* point : listOfPoints)
 	{
-		point->vertex->Position = point->position;
+		//point->vertex->Position = point->position;
 
 
-		//glm::vec4 vertex2Matrix = glm::vec4(point->position.x,
-		//	point->position.y,
-		//	point->position.z, 1.0f);
+		glm::vec4 vertex2Matrix = glm::vec4(point->position.x,
+			point->position.y,
+			point->position.z, 1.0f);
 
-		//vertex2Matrix = transform.GetModelInverseMatrix() * vertex2Matrix;
+		vertex2Matrix = transform.GetModelInverseMatrix() * vertex2Matrix;
 
 		//vertex2Matrix = transform.GetModelMatrix() * vertex2Matrix;
 
 
-		//point->vertex->Position.x = vertex2Matrix.x;
-		//point->vertex->Position.y = vertex2Matrix.y;
-		//point->vertex->Position.z = vertex2Matrix.z;
+		point->vertex->Position.x = vertex2Matrix.x;
+		point->vertex->Position.y = vertex2Matrix.y;
+		point->vertex->Position.z = vertex2Matrix.z;
 	}
 
 	//UpdateNormals();
