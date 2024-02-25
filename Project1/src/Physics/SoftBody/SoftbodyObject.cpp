@@ -24,29 +24,7 @@ void SoftbodyObject::Initialize()
 
 }
 
-void SoftbodyObject::CalculateTriangles()
-{
-	listOfTriangles.clear();
 
-	for (std::shared_ptr<Mesh> mesh : meshes)
-	{
-		std::vector<Triangle> trianglelist;
-		trianglelist.reserve(mesh->triangle.size());
-
-		for (const Triangles& triangle : mesh->triangle)
-		{
-			Triangle temp;
-			temp.v1 = triangle.v1;
-			temp.v2 = triangle.v2;
-			temp.v3 = triangle.v3;
-			temp.normal = triangle.normal;
-			temp.CalculateMidpoint();
-
-			listOfTriangles.push_back(temp);
-		}
-
-	}
-}
 
 void SoftbodyObject::CalculateVertex()
 {
@@ -114,26 +92,23 @@ void SoftbodyObject::CalculateVertex()
 			Point* point2 = listOfPoints[mesh->indices[i +1]];
 			Point* point3 = listOfPoints[mesh->indices[i + 2]];
 
-			Stick* edge1 = new Stick();
-			edge1->pointA = point1;
-			edge1->pointB = point2;
-			edge1->restLength = glm::distance(point1->position, point2->position);
+			Stick* edge1 = new Stick(point1, point2);
+			//edge1->pointA = point1;
+			//edge1->pointB = point2;
+			//edge1->restLength = glm::distance(point1->position, point2->position);
 			listOfSticks.push_back(edge1);
 
-			Stick* edge2 = new Stick();
-			edge2->pointA = point2;
-			edge2->pointB = point3;
-			edge2->restLength = glm::distance(point2->position, point3->position);
+			Stick* edge2 = new Stick(point2, point3);
+			//edge2->pointA = point2;
+			//edge2->pointB = point3;
+			//edge2->restLength = glm::distance(point2->position, point3->position);
 			listOfSticks.push_back(edge2);
 
-			Stick* edge3 = new Stick();
-			edge3->pointA = point3;
-			edge3->pointB = point1;
-			edge3->restLength = glm::distance(point3->position, point1->position);
+			Stick* edge3 = new Stick(point3, point1);
+			//edge3->pointA = point3;
+			//edge3->pointB = point1;
+			//edge3->restLength = glm::distance(point3->position, point1->position);
 			listOfSticks.push_back(edge3);
-
-
-
 
 		}
 
@@ -196,7 +171,7 @@ void SoftbodyObject::DrawProperties()
 		ImGui::SetNextItemWidth(80);
 		ImGui::DragFloat(("###Z" + std::to_string(i)).c_str(), &point->position.z);
 
-
+		ImGui::NewLine();
 	}
 	ImGui::TreePop();
 
@@ -205,24 +180,20 @@ void SoftbodyObject::DrawProperties()
 	{
 		return;
 	}
-	for (Stick* Stick : listOfSticks)
-	{
 
-		ImGui::Text("stickAcitve");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(80);
-		ImGui::Checkbox("##stickAcitve", &Stick->isActive);
-		
-
-		ImGui::Text("isLocked");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(80);
-		ImGui::Checkbox("###isLocked", &Stick->isLocked);
-
-
+	ImGui::BeginGroup();
 	
-	}
+	
+	for (int i = 0; i < listOfSticks.size(); ++i)
+	{
+		Stick*& stick = listOfSticks[i];
+		ImGui::Text("stick Acitve");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		ImGui::Checkbox("### StickAcitve", &stick->isActive);
 
+	}
+	ImGui::EndGroup();
 	ImGui::TreePop();
 }
 
@@ -255,6 +226,7 @@ void SoftbodyObject::Render()
 		GraphicsRender::GetInstance().DrawLine(stick->pointA->position, stick->pointB->position, glm::vec4(1, 1, 0, 1));
 	}
 	
+	GraphicsRender::GetInstance().DrawSphere(lockSphereCenter, lockRadius, glm::vec4(1, 0, 1, 1), true);
 }
 
 void SoftbodyObject::OnDestroy()
@@ -265,11 +237,8 @@ void SoftbodyObject::UpdateVerlet(float deltaTime)
 {
 	
 	UpdatePoints(deltaTime);
-
-
 	CollisionTest();
 	UpdateSticks(deltaTime);
-
 	UpdateVertices();
 }
 
@@ -459,6 +428,14 @@ void SoftbodyObject::CleanZeros(glm::vec3& value)
 	}
 }
 
+void SoftbodyObject::AddLockSphere(glm::vec3 centre, float radius)
+{
+	for (Point* point : listOfPoints)
+	{
+		point->locked = IsLocked(point, centre, radius);
+	}
+}
+
 void SoftbodyObject::UpdateVertices()
 {
 
@@ -642,4 +619,12 @@ void SoftbodyObject::handleSoftBodyAABBCollision(Point& point,const cAABB& aabb)
 		// 
 		// point.position = glm::vec
 		
+}
+
+bool SoftbodyObject::IsLocked(Point* point, glm::vec3 centre, float radius)
+{
+	float distance = glm::distance(point->position, centre);
+	lockSphereCenter = centre;
+	lockRadius = radius;
+	return distance < radius;
 }

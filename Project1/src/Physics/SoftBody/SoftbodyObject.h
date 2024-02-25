@@ -39,8 +39,12 @@ struct Point
 
 struct Stick
 {
-//public:
 	Stick() {};
+	Stick(Point* _pointA, Point* _pointB) : pointA(_pointA), pointB(_pointB)
+	{
+		restLength = glm::distance(_pointA->position, _pointB->position);
+	};
+
 	Point* pointA = nullptr;
 	Point* pointB = nullptr;
 	float restLength = 0;
@@ -65,7 +69,6 @@ public:
 	std::vector<Triangle> GetTriangleList();
 
 	void Initialize();
-	void CalculateTriangles();
 	void CalculateVertex();
 
 
@@ -86,6 +89,7 @@ public:
 	void UpdateNormals();
 
 	void CleanZeros(glm::vec3& value);
+	void AddLockSphere(glm::vec3 centre, float radius);
 
 	PhysicsObject* updateAABBTest = nullptr;
 private:
@@ -104,5 +108,9 @@ private:
 
 	void handleSoftBodyAABBCollision(Point& particle, const cAABB& aabb);
 
+	bool IsLocked(Point* point, glm::vec3 centre, float radius);
+
+	glm::vec3 lockSphereCenter;
+	float lockRadius;
 };
 
