@@ -32,6 +32,7 @@ void SoftbodyObject::CalculateVertex()
 
 	listOfPoints.clear();
 
+	unsigned int meshIndex = 0;
 	for (std::shared_ptr<Mesh> mesh : meshes)
 	{
 		
@@ -53,67 +54,66 @@ void SoftbodyObject::CalculateVertex()
 		}
 
 
+		SetupPoints(mesh->vertices);
 
-		listOfPoints.reserve(mesh->vertices.size());
+		SetupSticks(mesh, meshIndex);
 
-		for (Vertex& vertex : mesh->vertices)
-		{
-			Point* temp = new Point();
-
-			temp->position = vertex.Position;
-			temp->previousPosition = temp->position;
-			temp->vertex = &vertex;
-			temp->sphere.center = vertex.Position;
-			temp->sphere.radius = 0.025f;
-
-			listOfPoints.push_back(temp);
-		}
-
-
-
-		for (size_t i = 0; i < mesh->indices.size(); i += 3)
-		{
-			Triangle tempTri;
-
-			tempTri.v1 = mesh->vertices[mesh->indices[i]].Position;
-			tempTri.v2 = mesh->vertices[mesh->indices[i + 1]].Position;
-			tempTri.v3 = mesh->vertices[mesh->indices[i + 2]].Position;
-
-			tempTri.normal = (mesh->vertices[mesh->indices[i]].Normal +
-				mesh->vertices[mesh->indices[i + 1]].Normal +
-				mesh->vertices[mesh->indices[i + 2]].Normal) / 3.0f;
-		
-			tempTri.CalculateMidpoint();
-			listOfTriangles.push_back(tempTri);
-
-
-
-			Point* point1 = listOfPoints[mesh->indices[i]];
-			Point* point2 = listOfPoints[mesh->indices[i +1]];
-			Point* point3 = listOfPoints[mesh->indices[i + 2]];
-
-			Stick* edge1 = new Stick(point1, point2);
-			//edge1->pointA = point1;
-			//edge1->pointB = point2;
-			//edge1->restLength = glm::distance(point1->position, point2->position);
-			listOfSticks.push_back(edge1);
-
-			Stick* edge2 = new Stick(point2, point3);
-			//edge2->pointA = point2;
-			//edge2->pointB = point3;
-			//edge2->restLength = glm::distance(point2->position, point3->position);
-			listOfSticks.push_back(edge2);
-
-			Stick* edge3 = new Stick(point3, point1);
-			//edge3->pointA = point3;
-			//edge3->pointB = point1;
-			//edge3->restLength = glm::distance(point3->position, point1->position);
-			listOfSticks.push_back(edge3);
-
-		}
+		meshIndex++;
 
 	}
 }
+
+void SoftbodyObject::SetupPoints(std::vector<Vertex>& vertices)
+{
+	listOfPoints.reserve(vertices.size());
+
+	for (Vertex& vertex : vertices)
+	{
+		Point* temp = new Point(vertex.Position, vertex.Position, &vertex);
+		temp->sphere.center = vertex.Position;
+		temp->sphere.radius = 0.025f;
+
+		listOfPoints.push_back(temp);
+	}
+
+}
+
+void SoftbodyObject::SetupSticks(std::shared_ptr<Mesh> mesh, unsigned int currentMeshIndex)
+{
+	for (size_t i = 0; i < mesh->indices.size(); i += 3)
+	{
+		//	/*Triangle tempTri;
+
+		//	tempTri.v1 = mesh->vertices[mesh->indices[i]].Position;
+		//	tempTri.v2 = mesh->vertices[mesh->indices[i + 1]].Position;
+		//	tempTri.v3 = mesh->vertices[mesh->indices[i + 2]].Position;
+
+		//	tempTri.normal = (mesh->vertices[mesh->indices[i]].Normal +
+		//		mesh->vertices[mesh->indices[i + 1]].Normal +
+		//		mesh->vertices[mesh->indices[i + 2]].Normal) / 3.0f;
+		//
+		//	tempTri.CalculateMidpoint();
+		//	listOfTriangles.push_back(tempTri);*/
+
+
+
+		Point* point1 = listOfPoints[mesh->indices[currentMeshIndex +i]];
+		Point* point2 = listOfPoints[mesh->indices[currentMeshIndex+ i + 1]];
+		Point* point3 = listOfPoints[mesh->indices[currentMeshIndex+ i + 2]];
+
+		Stick* edge1 = new Stick(point1, point2);
+		listOfSticks.push_back(edge1);
+
+		Stick* edge2 = new Stick(point2, point3);
+		listOfSticks.push_back(edge2);
+
+		Stick* edge3 = new Stick(point3, point1);
+		listOfSticks.push_back(edge3);
+
+	}
+}
+
+
 
 void SoftbodyObject::DrawProperties()
 {
@@ -479,7 +479,7 @@ void SoftbodyObject::UpdateNormals()
 
 	for (std::shared_ptr<Mesh> mesh : meshes)
 	{
-		for (size_t i = 0; i < mesh->triangle.size(); i++)
+		for (size_t i = 0; i < mesh->indices.size(); i += 3)
 		{
 			unsigned int vertAIndex = mesh->indices[i + 0];
 			unsigned int vertBIndex = mesh->indices[i + 1];
@@ -502,7 +502,9 @@ void SoftbodyObject::UpdateNormals()
 
 			//normal = glm::normalize(normal);
 
-			if (glm::length(normal)!=0)
+			CleanZeros(normal);
+
+			//if (glm::length(normal)!=0)
 			{
 				vertexA.Normal.x += normal.x;
 				vertexA.Normal.y += normal.y;

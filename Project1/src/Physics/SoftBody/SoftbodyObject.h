@@ -7,8 +7,8 @@ struct Point
 {
 //public:
 	Point() {};
-	Point(glm::vec3 position, glm::vec3 oldPostiion,Vertex* vertex) : 
-	position(position),previousPosition(oldPostiion), vertex(nullptr)
+	Point(glm::vec3 position, glm::vec3 oldPostiion,Vertex* _vertex) : 
+	position(position),previousPosition(oldPostiion), vertex(_vertex)
 	{
 	}
 
@@ -70,6 +70,8 @@ public:
 
 	void Initialize();
 	void CalculateVertex();
+	void SetupPoints(std::vector<Vertex>& vertices);
+	void SetupSticks(std::shared_ptr<Mesh> mesh, unsigned int currentMeshIndex);
 
 
 	void DrawProperties()override;
@@ -99,7 +101,6 @@ private:
 	float renderRadius = 0.025f;
 	float tightnessFactor = 1;
 	float lockRadius;
-
 	const double MAX_DELTATIME = 1.0 / 60.0;
 
 	glm::vec3 downVector = glm::vec3(0, -1, 0);
