@@ -45,6 +45,7 @@ struct Stick
 	Point* pointB = nullptr;
 	float restLength = 0;
 	bool isActive = true;
+	bool isLocked = false;
 };
 
 class SoftbodyObject : public Model
@@ -55,7 +56,7 @@ public:
 
 	bool isSoftBodyActive = true;
 
-	float acceleration = 5 /*-9.81f*/;
+	float gravity = 0.1f /*-9.81f*/;
 
 
 	std::vector<Triangle> listOfTriangles;
@@ -88,10 +89,9 @@ public:
 
 	PhysicsObject* updateAABBTest = nullptr;
 private:
-	float PointsDistance(Point* pointA, Point* pointB);
 
 	bool showDebug = true;
-	float renderRadius = 0.0025f;
+	float renderRadius = 0.025f;
 	float tightnessFactor = 1;
 
 	glm::vec3 downVector = glm::vec3(0, -1, 0);

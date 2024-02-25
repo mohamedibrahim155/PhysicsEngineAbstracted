@@ -31,10 +31,7 @@ void SoftbodyObject::CalculateTriangles()
 	for (std::shared_ptr<Mesh> mesh : meshes)
 	{
 		std::vector<Triangle> trianglelist;
-		//std::vector<cSphere*> meshSphers;
-
 		trianglelist.reserve(mesh->triangle.size());
-		//meshSphers.reserve(mesh->triangle.size());
 
 		for (const Triangles& triangle : mesh->triangle)
 		{
@@ -45,12 +42,7 @@ void SoftbodyObject::CalculateTriangles()
 			temp.normal = triangle.normal;
 			temp.CalculateMidpoint();
 
-			//glm::vec3 sphereCenter = (temp.v1 + temp.v2 + temp.v3) / 3.0f;
-			//float radius = glm::max(glm::distance(sphereCenter, temp.v1),
-			//	glm::max(glm::distance(sphereCenter, temp.v2), glm::distance(sphereCenter, temp.v3)));
-
 			listOfTriangles.push_back(temp);
-			/*triangleSpheres.push_back(new cSphere(sphereCenter, radius));*/
 		}
 
 	}
@@ -145,33 +137,6 @@ void SoftbodyObject::CalculateVertex()
 
 		}
 
-		/*for (const Triangles& triangle : mesh->triangle)
-		{
-			Triangle temp;
-			temp.v1 = triangle.v1;
-			temp.v2 = triangle.v2;
-			temp.v3 = triangle.v3;
-			temp.normal = triangle.normal;
-			temp.CalculateMidpoint();
-
-			Stick* edge1 = new Stick();
-			edge1->pointA = new Point(temp.v1, temp.v1, new Vertex());
-			edge1->pointB = new Point(temp.v2, temp.v2, new Vertex());
-
-			Stick* edge2 = new Stick();
-			edge2->pointA = new Point(temp.v2, temp.v2, new Vertex());
-			edge2->pointB = new Point(temp.v3, temp.v3, new Vertex());
-
-			Stick* edge3 = new Stick();
-			edge3->pointA = new Point(temp.v3, temp.v3, new Vertex());
-			edge3->pointB = new Point(temp.v1, temp.v1, new Vertex());
-
-
-
-
-			listOfTriangles.push_back(temp);
-		}*/
-
 	}
 }
 
@@ -194,6 +159,12 @@ void SoftbodyObject::DrawProperties()
 	ImGui::InputFloat("##tightnessFactor", &tightnessFactor,0,0.1,"%.2f");
 
 	ImGui::NewLine();
+	ImGui::TreePop();
+
+	if (!ImGui::TreeNodeEx("List of points ", ImGuiTreeNodeFlags_OpenOnArrow))
+	{
+		return;
+	}
 	for (int i = 0; i < listOfPoints.size(); ++i)
 	{
 		Point*& point = listOfPoints[i];
@@ -204,24 +175,53 @@ void SoftbodyObject::DrawProperties()
 		ImGui::SetNextItemWidth(80);
 		ImGui::Checkbox(("##locked" + std::to_string(i)).c_str(), &point->locked);
 
+
+
+
 		ImGui::SetNextItemWidth(80);
 		ImGui::Text("points");
-
+		ImGui::SameLine();
+		ImGui::Text("X");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat(("x##" + std::to_string(i)).c_str(), &point->position.x);
-
+		ImGui::DragFloat(("##X" + std::to_string(i)).c_str(), &point->position.x);
+		ImGui::SameLine();
+		ImGui::Text("Y");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat(("y##" + std::to_string(i)).c_str(), &point->position.y);
-
+		ImGui::DragFloat(("###Y" + std::to_string(i)).c_str(), &point->position.y);
+		ImGui::SameLine();
+		ImGui::Text("Z");
 		ImGui::SameLine();
 		ImGui::SetNextItemWidth(80);
-		ImGui::DragFloat(("z##" + std::to_string(i)).c_str(), &point->position.z);
+		ImGui::DragFloat(("###Z" + std::to_string(i)).c_str(), &point->position.z);
 
 
 	}
+	ImGui::TreePop();
 
+
+	if (!ImGui::TreeNodeEx("stick List", ImGuiTreeNodeFlags_OpenOnArrow))
+	{
+		return;
+	}
+	for (Stick* Stick : listOfSticks)
+	{
+
+		ImGui::Text("stickAcitve");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		ImGui::Checkbox("##stickAcitve", &Stick->isActive);
+		
+
+		ImGui::Text("isLocked");
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(80);
+		ImGui::Checkbox("###isLocked", &Stick->isLocked);
+
+
+	
+	}
 
 	ImGui::TreePop();
 }
@@ -242,18 +242,17 @@ void SoftbodyObject::Update(float deltaTime)
 
 void SoftbodyObject::Render()
 {
-	if (showDebug)
+	if (!showDebug) return;
+
+
+	for (Point* point : listOfPoints)
 	{
-		for (Point* point : listOfPoints)
-		{
-			GraphicsRender::GetInstance().DrawSphere(point->UpdateSphere(transform).center, point->UpdateSphere(transform).radius, glm::vec4(0, 1, 1, 1), true);
-		}
+		GraphicsRender::GetInstance().DrawSphere(point->position, renderRadius, glm::vec4(0, 1, 1, 1), true);
+	}
 
-		for (Stick* stick: listOfSticks )
-		{
-			GraphicsRender::GetInstance().DrawLine(stick->pointA->position, stick->pointB->position, glm::vec4(1, 1, 0, 1));
-
-		}
+	for (Stick* stick : listOfSticks)
+	{
+		GraphicsRender::GetInstance().DrawLine(stick->pointA->position, stick->pointB->position, glm::vec4(1, 1, 0, 1));
 	}
 	
 }
@@ -276,7 +275,7 @@ void SoftbodyObject::UpdateVerlet(float deltaTime)
 
 void SoftbodyObject::UpdateSticks(float deltaTime)
 {
-	const unsigned int MAX_ITERATION = 10;
+	const unsigned int MAX_ITERATION = 3;
 
 	for (size_t i = 0; i < MAX_ITERATION; i++)
 	{
@@ -291,7 +290,7 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 				glm::vec3 delta = pointB->position - pointA->position;
 				float deltaLength = glm::length(delta);
 
-				//if (deltaLength != 0)
+				if (deltaLength != 0)
 				{
 					float diff = (deltaLength - stick->restLength) / deltaLength;
 
@@ -368,7 +367,7 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 				{
 					point->position += (point->position - point->previousPosition);
 
-					point->position += downVector * acceleration * (deltaTime * deltaTime);
+					point->position += downVector * gravity * (deltaTime * deltaTime);
 
 				}
 
@@ -384,6 +383,8 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 
 }
 
+
+
 void SoftbodyObject::CollisionTest()
 {
 	//for (Point* point : listOfPoints)
@@ -394,31 +395,19 @@ void SoftbodyObject::CollisionTest()
 	//	}
 	//}
 
-	//for (Point* point : listOfPoints)
-	//{
-	//	/*if (CheckSoftBodyAABBCollision(point, updateAABBTest->UpdateAABB()))
-	//	{
-	//		handleSoftBodyAABBCollision(*point,updateAABBTest->UpdateAABB());
-	//		std::cout << "Collision Detected" << std::endl;
-	//	}*/
-	////	cSphere sphere = updateAABBTest->UpdateSphere();
-	//	//if (CheckSoftBodySphereCollision(point, sphere))
-	//	{
-	//		//std::cout << "sphere collission Detected" << std::endl;
-
-	//		//glm::vec3 particleToCentreRay = point->position - updateAABBTest->UpdateSphere().center;
-	//		//// Normalize to get the direction
-	//		//particleToCentreRay = glm::normalize(particleToCentreRay);
-
-
-	//		////if (glm::length(particleToCentreRay) != 0)
-	//		//{
-	//		//	point->position = (particleToCentreRay * updateAABBTest->UpdateSphere().radius) + updateAABBTest->UpdateSphere().center;
-	//		//}
-	//		std::cout << "Sphere collisiondetected" << std::endl;
-	//	//	HandleSoftBodySphereCollision(point, sphere);
-	//	}
-	//}
+	for (Point* point : listOfPoints)
+	{
+		/*if (CheckSoftBodyAABBCollision(point, updateAABBTest->UpdateAABB()))
+		{
+			handleSoftBodyAABBCollision(*point,updateAABBTest->UpdateAABB());
+			std::cout << "Collision Detected" << std::endl;
+		}*/
+		cSphere sphere = updateAABBTest->UpdateSphere();
+		if (CheckSoftBodySphereCollision(point, sphere))
+		{
+			HandleSoftBodySphereCollision(point, sphere);
+		}
+	}
 
 	
 
@@ -473,25 +462,17 @@ void SoftbodyObject::CleanZeros(glm::vec3& value)
 void SoftbodyObject::UpdateVertices()
 {
 
-	//for (Point* point : listOfPoints)
-	//{
-	//	point->vertex->Position = point->position;
+	for (Point* point : listOfPoints)
+	{
+		glm::vec4 vertexMatrix = glm::vec4(point->position, 1.0f);
 
+		glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
+		vertexMatrix = modelInversematrix * vertexMatrix;
 
-	//	glm::vec4 vertex2Matrix = glm::vec4(point->position, 1.0f);
-	//	glm::mat4 modelmatrix = transform.GetModelMatrix();
+		point->vertex->Position = glm::vec3(vertexMatrix.x, vertexMatrix.y, vertexMatrix.z);
+	}
 
-	//	vertex2Matrix = modelmatrix * vertex2Matrix;
-
-	//	//vertex2Matrix = transform.GetModelMatrix() * vertex2Matrix;
-
-
-	//	point->vertex->Position = glm::vec3(vertex2Matrix.x, vertex2Matrix.y, vertex2Matrix.z);
-	//	/*point->vertex->Position.y = vertex2Matrix.y;
-	//	point->vertex->Position.z = vertex2Matrix.z;*/
-	//}
-
-	//UpdateNormals();
+	UpdateNormals();
 
 	for (std::shared_ptr<Mesh> mesh: meshes)
 	{
@@ -582,10 +563,6 @@ void SoftbodyObject::UpdateNormals()
 
 }
 
-float SoftbodyObject::PointsDistance(Point* pointA, Point* pointB)
-{
-	return glm::distance(pointA->position, pointB->position);
-}
 
 bool SoftbodyObject::CheckSoftBodyAABBCollision(Point* particle, const cAABB& aabb)
 {

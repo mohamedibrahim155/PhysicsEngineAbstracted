@@ -240,12 +240,12 @@ void ApplicationRenderer::Start()
     softBodyTest1->LoadModel("Models/Plane/Plane.ply");
     //softBodyTest1->LoadModel("Models/DefaultCube/DefaultCube.fbx");
     softBodyTest1->isVisible = true;
-    softBodyTest1->transform.SetPosition(glm::vec3(0, 10, 0));
+    softBodyTest1->transform.SetPosition(glm::vec3(0, 3, 0));
     softBodyTest1->transform.SetScale(glm::vec3(5));
     GraphicsRender::GetInstance().AddModelAndShader(softBodyTest1, defaultShader);
     softBodyTest1->updateAABBTest = ballPhysics;
     softBodyTest1->Initialize();
-
+    
 
 
 
