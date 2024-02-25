@@ -55,7 +55,7 @@ glm::mat4 Transform::GetModelMatrix() const
 
 glm::mat4 Transform::GetModelInverseMatrix() const
 {
-    return glm::inverse(glm::transpose(GetModelMatrix()));
+    return glm::inverse(/*glm::transpose*/(GetModelMatrix()));
 }
 
 glm::vec3 Transform::GetForward() const
