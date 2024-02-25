@@ -95,22 +95,25 @@ public:
 private:
 
 	bool showDebug = true;
+
 	float renderRadius = 0.025f;
 	float tightnessFactor = 1;
+	float lockRadius;
 
-	glm::vec3 downVector = glm::vec3(0, -1, 0);
 	const double MAX_DELTATIME = 1.0 / 60.0;
 
+	glm::vec3 downVector = glm::vec3(0, -1, 0);
+	glm::vec3 lockSphereCenter;
+	
 	bool CheckSoftBodyAABBCollision(Point* point, const cAABB& aabb);
 	bool CheckSoftBodySphereCollision(Point* point, const cSphere& sphere);
 	void HandleSoftBodySphereCollision(Point*& point, const cSphere& sphere);
 	//bool CheckSoftBodyAABBCollision(const cAABB& aabb);
+	
 
 	void handleSoftBodyAABBCollision(Point& particle, const cAABB& aabb);
 
-	bool IsLocked(Point* point, glm::vec3 centre, float radius);
+	bool IsPointLocked(Point* point, glm::vec3 centre, float radius);
 
-	glm::vec3 lockSphereCenter;
-	float lockRadius;
 };
 

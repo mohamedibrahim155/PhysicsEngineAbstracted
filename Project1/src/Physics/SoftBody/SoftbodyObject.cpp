@@ -133,6 +133,32 @@ void SoftbodyObject::DrawProperties()
 	ImGui::SetNextItemWidth(150);
 	ImGui::InputFloat("##tightnessFactor", &tightnessFactor,0,0.1,"%.2f");
 
+	ImGui::Text("LockRadius");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(150);
+	ImGui::InputFloat("##lockRadius", &lockRadius, 0, 0.1, "%.2f");
+
+	
+
+	ImGui::SetNextItemWidth(80);
+	ImGui::Text("LockCentre");
+	ImGui::SameLine();
+	ImGui::Text("X");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(80);
+	ImGui::DragFloat("##X" ,&lockSphereCenter.x);
+	ImGui::SameLine();
+	ImGui::Text("Y");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(80);
+	ImGui::DragFloat("###Y", &lockSphereCenter.y);
+	ImGui::SameLine();
+	ImGui::Text("Z");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(80);
+	ImGui::DragFloat("###Z", &lockSphereCenter.z);
+
+
 	ImGui::NewLine();
 	ImGui::TreePop();
 
@@ -175,26 +201,6 @@ void SoftbodyObject::DrawProperties()
 	}
 	ImGui::TreePop();
 
-
-	if (!ImGui::TreeNodeEx("stick List", ImGuiTreeNodeFlags_OpenOnArrow))
-	{
-		return;
-	}
-
-	ImGui::BeginGroup();
-	
-	
-	for (int i = 0; i < listOfSticks.size(); ++i)
-	{
-		Stick*& stick = listOfSticks[i];
-		ImGui::Text("stick Acitve");
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(80);
-		ImGui::Checkbox("### StickAcitve", &stick->isActive);
-
-	}
-	ImGui::EndGroup();
-	ImGui::TreePop();
 }
 
 void SoftbodyObject::SceneDraw()
@@ -430,9 +436,12 @@ void SoftbodyObject::CleanZeros(glm::vec3& value)
 
 void SoftbodyObject::AddLockSphere(glm::vec3 centre, float radius)
 {
+	lockSphereCenter = centre;
+	lockRadius = radius;
+
 	for (Point* point : listOfPoints)
 	{
-		point->locked = IsLocked(point, centre, radius);
+		point->locked = IsPointLocked(point, centre, radius);
 	}
 }
 
@@ -621,10 +630,8 @@ void SoftbodyObject::handleSoftBodyAABBCollision(Point& point,const cAABB& aabb)
 		
 }
 
-bool SoftbodyObject::IsLocked(Point* point, glm::vec3 centre, float radius)
+bool SoftbodyObject::IsPointLocked(Point* point, glm::vec3 centre, float radius)
 {
 	float distance = glm::distance(point->position, centre);
-	lockSphereCenter = centre;
-	lockRadius = radius;
 	return distance < radius;
 }

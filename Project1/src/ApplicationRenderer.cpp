@@ -245,7 +245,7 @@ void ApplicationRenderer::Start()
     softBodyTest1->updateAABBTest = ballPhysics;
     softBodyTest1->Initialize();
     
-    softBodyTest1->AddLockSphere(glm::vec3(0, 1, 0), 0.25f);
+    softBodyTest1->AddLockSphere(glm::vec3(0.25f ,1.0f, 0.1f), 0.08f);
 
 
 }
