@@ -56,7 +56,7 @@ void SoftbodyObject::CalculateVertex()
 
 		SetupPoints(mesh->vertices);
 
-		SetupSticks(mesh, meshIndex);
+		SetupSticks(mesh, meshIndex);  // need to check with  meshcount>1 
 
 		meshIndex++;
 
