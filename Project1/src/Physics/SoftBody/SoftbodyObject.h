@@ -112,7 +112,7 @@ private:
 	//bool CheckSoftBodyAABBCollision(const cAABB& aabb);
 	
 
-	void handleSoftBodyAABBCollision(Point& particle, const cAABB& aabb);
+	void HandleSoftBodyAABBCollision(Point& particle, const cAABB& aabb);
 
 	bool IsPointLocked(Point* point, glm::vec3 centre, float radius);
 

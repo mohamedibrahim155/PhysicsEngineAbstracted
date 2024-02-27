@@ -261,7 +261,7 @@ void SoftbodyObject::UpdateSticks(float deltaTime)
 
 				Point* pointA = stick->pointA;
 				Point* pointB = stick->pointB;
-				//// FEENEYS's
+				//// FEENEY's
 				glm::vec3 delta = pointB->position - pointA->position;
 				float deltaLength = glm::length(delta);
 
@@ -592,7 +592,7 @@ void SoftbodyObject::HandleSoftBodySphereCollision(Point*& point, const cSphere&
 	//return;
 }
 
-void SoftbodyObject::handleSoftBodyAABBCollision(Point& point,const cAABB& aabb)
+void SoftbodyObject::HandleSoftBodyAABBCollision(Point& point,const cAABB& aabb)
 {
 	//
 		/*if (point.position.x < aabb.minV.x)
