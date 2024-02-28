@@ -17,8 +17,19 @@ std::vector<Triangle> SoftbodyObject::GetTriangleList()
 
 void SoftbodyObject::Initialize()
 {
-	//CalculateTriangles();
-	CalculateVertex();
+	
+	switch (type)
+	{
+	case BodyType::CLOTH:
+		CalculateCloth();
+		break;
+	case BodyType::SPRING:
+		CalculateSpring();
+		break;
+	default:
+		break;
+	}
+	
 
 	PhysicsEngine::GetInstance().AddSoftBodyObject(this);
 
@@ -26,7 +37,7 @@ void SoftbodyObject::Initialize()
 
 
 
-void SoftbodyObject::CalculateVertex()
+void SoftbodyObject::CalculateCloth()
 {
 
 
@@ -63,16 +74,101 @@ void SoftbodyObject::CalculateVertex()
 	}
 }
 
+void SoftbodyObject::CalculateSpring()
+{
+	listOfPoints.clear();
+	listOfSticks.clear();
+
+	glm::mat4 modelMat  = transform.GetModelMatrix();
+
+	for (std::shared_ptr<Mesh> mesh : meshes)
+	{
+
+		
+		glm::vec3 totalPositions = glm::vec3(0);
+
+		Point* point = new Point();
+
+
+		for (size_t index = 0; index < mesh->vertices.size(); index++)
+		{
+
+			totalPositions += mesh->vertices[index].Position;
+
+			VertexData* temp = new VertexData();
+
+
+			temp->vertex = &mesh->vertices[index];
+
+			point->vertex.push_back(temp);
+		}
+
+		point->centre = totalPositions / (float)point->vertex.size();
+
+
+		for (size_t i = 0; i < point->vertex.size(); i++)
+		{
+			point->vertex[i]->offset = point->vertex[i]->vertex->Position - point->centre;
+		}
+
+
+	
+
+		for (size_t index = 0; index < mesh->vertices.size(); index++)
+		{
+
+			glm::vec3 transformedPosition = modelMat * glm::vec4(mesh->vertices[index].Position, 1);
+
+			mesh->vertices[index].Position = transformedPosition;
+
+
+		}
+
+
+	
+		//point->centre = totalPositions / (float)point->vertex.size();
+
+		point->position = modelMat * glm::vec4(point->centre, 1);
+
+		point->previousPosition = point->position;
+
+		listOfPoints.push_back(point);
+	}
+
+	for (int i = 0; i < meshes.size() - 1; i++)
+	{
+
+		Point* pointA = listOfPoints[i];
+		Point* pointB = listOfPoints[i + 1];
+
+		Stick* stick = new Stick(pointA, pointB);
+
+		listOfSticks.push_back(stick);
+
+	}
+
+
+
+	//listOfPoints.reserve(vertices.size());
+
+	//for (Vertex& vertex : vertices)
+	//{
+	//	Point* temp = new Point(vertex.Position, vertex.Position, { &vertex });
+	//	listOfPoints.push_back(temp);
+	//}
+}
+
 void SoftbodyObject::SetupPoints(std::vector<Vertex>& vertices)
 {
 	listOfPoints.reserve(vertices.size());
 
 	for (Vertex& vertex : vertices)
 	{
-		Point* temp = new Point(vertex.Position, vertex.Position, &vertex);
-		temp->sphere.center = vertex.Position;
-		temp->sphere.radius = 0.025f;
+		VertexData* vertexData = new VertexData();
 
+		vertexData->vertex = &vertex;
+
+		Point* temp = new Point(vertex.Position, vertex.Position, { vertexData });
 		listOfPoints.push_back(temp);
 	}
 
@@ -82,19 +178,6 @@ void SoftbodyObject::SetupSticks(std::shared_ptr<Mesh> mesh, unsigned int curren
 {
 	for (size_t i = 0; i < mesh->indices.size(); i += 3)
 	{
-		//	/*Triangle tempTri;
-
-		//	tempTri.v1 = mesh->vertices[mesh->indices[i]].Position;
-		//	tempTri.v2 = mesh->vertices[mesh->indices[i + 1]].Position;
-		//	tempTri.v3 = mesh->vertices[mesh->indices[i + 2]].Position;
-
-		//	tempTri.normal = (mesh->vertices[mesh->indices[i]].Normal +
-		//		mesh->vertices[mesh->indices[i + 1]].Normal +
-		//		mesh->vertices[mesh->indices[i + 2]].Normal) / 3.0f;
-		//
-		//	tempTri.CalculateMidpoint();
-		//	listOfTriangles.push_back(tempTri);*/
-
 
 
 		Point* point1 = listOfPoints[mesh->indices[currentMeshIndex +i]];
@@ -325,12 +408,12 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 			glm::vec3 currentPosition = point->position;
 			glm::vec3 prevPosition = point->previousPosition;
 
-			/*glm::vec3 direction = currentPosition - prevPosition;
+			glm::vec3 direction = currentPosition - prevPosition;
 
 			
-				point->position += (direction) + (glm::vec3(0, -acceleration, 0) * (float)(deltaTime * deltaTime));
+				point->position += (direction) + (glm::vec3(0, -gravity, 0) * (float)(deltaTime * deltaTime));
 
-				point->previousPosition = currentPosition;*/
+				point->previousPosition = currentPosition;
 
 
 				/*if (CheckSoftBodyAABBCollision(point,updateAABBTest->UpdateAABB()))
@@ -339,7 +422,7 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 					handleSoftBodyAABBCollision(*point, updateAABBTest->UpdateAABB());
 				}
 				else*/
-				{
+				/*{
 					point->position += (point->position - point->previousPosition);
 
 					point->position += downVector * gravity * (deltaTime * deltaTime);
@@ -347,7 +430,7 @@ void SoftbodyObject::UpdatePoints(float deltaTime)
 				}
 
 
-				point->previousPosition = currentPosition;
+				point->previousPosition = currentPosition;*/
 
 				CleanZeros(point->position);
 				CleanZeros(point->previousPosition);
@@ -448,15 +531,47 @@ void SoftbodyObject::AddLockSphere(glm::vec3 centre, float radius)
 void SoftbodyObject::UpdateVertices()
 {
 
-	for (Point* point : listOfPoints)
+	switch (type)
 	{
-		glm::vec4 vertexMatrix = glm::vec4(point->position, 1.0f);
+	case BodyType::CLOTH:
+
+		//for (Point* point : listOfPoints)
+		//{
+		//	glm::vec4 vertexMatrix = glm::vec4(point->position, 1.0f);
+
+		//	glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
+		//	vertexMatrix = modelInversematrix * vertexMatrix;
+
+		//	point->vertex[0]->Position = glm::vec3(vertexMatrix.x, vertexMatrix.y, vertexMatrix.z);
+		//}
+		break;
+	case BodyType::SPRING:
 
 		glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
-		vertexMatrix = modelInversematrix * vertexMatrix;
+		for (Point* point : listOfPoints)
+		{
+			for (size_t i = 0; i < point->vertex.size(); i++)
+			{
 
-		point->vertex->Position = glm::vec3(vertexMatrix.x, vertexMatrix.y, vertexMatrix.z);
+
+				glm::vec3 transformPosition =   modelInversematrix * glm::vec4((point->position), 1);
+
+
+				transformPosition += point->vertex[i]->offset;
+
+
+			//vertexMatrix = vertexMatrix * transform.GetModelMatrix();
+
+				point->vertex[i]->vertex->Position = glm::vec3(transformPosition.x, transformPosition.y, transformPosition.z);
+
+
+			}
+		}
+		break;
+	default:
+		break;
 	}
+	
 
 	UpdateNormals();
 

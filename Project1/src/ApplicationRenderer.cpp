@@ -234,20 +234,26 @@ void ApplicationRenderer::Start()
     GraphicsRender::GetInstance().AddModelAndShader(floor, defaultShader);
     floor->Initialize(AABB, true, STATIC);
 
+    //Model* chain
+
 
     SoftbodyObject* softBodyTest1 = new SoftbodyObject();
     softBodyTest1->name = "SoftbodySphere1";
-    softBodyTest1->LoadModel("Models/Plane/Plane.ply");
+   // softBodyTest1->LoadModel("Models/Plane/Plane.ply");
+    softBodyTest1->LoadModel("Models/Chain/Chain.fbx");
     //softBodyTest1->LoadModel("Models/DefaultCube/DefaultCube.fbx");
     softBodyTest1->transform.SetPosition(glm::vec3(0, 1, 0));
-    softBodyTest1->transform.SetScale(glm::vec3(5));
+    //softBodyTest1->transform.SetPosition(glm::vec3(0, 1, 0));
+    //softBodyTest1->transform.SetScale(glm::vec3(5));
+    softBodyTest1->transform.SetScale(glm::vec3(0.25f));
     GraphicsRender::GetInstance().AddModelAndShader(softBodyTest1, defaultShader);
     softBodyTest1->updateAABBTest = ballPhysics;
+    softBodyTest1->type = BodyType::SPRING;
     softBodyTest1->Initialize();
     
-    softBodyTest1->AddLockSphere(glm::vec3(0.25f ,1.0f, 0.1f), 0.08f);
+    softBodyTest1->AddLockSphere(glm::vec3(0.00192526f, 0.991442f, -0.00474217f), 0.08f);
 
-
+  //  0.00192526, 0.991442, -0.00474217
 }
 
 void ApplicationRenderer::PreRender()

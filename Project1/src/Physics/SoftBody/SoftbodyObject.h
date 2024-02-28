@@ -2,54 +2,14 @@
 #include "../../model.h"
 #include "../PhysicsCollisionTypes.h"
 #include"../PhysicsObject.h"
+#include "Stick.h"
 
-struct Point
+
+
+enum class BodyType
 {
-//public:
-	Point() {};
-	Point(glm::vec3 position, glm::vec3 oldPostiion,Vertex* _vertex) : 
-	position(position),previousPosition(oldPostiion), vertex(_vertex)
-	{
-	}
-
-	glm::vec3 position = glm::vec3(0);
-	glm::vec3 previousPosition = glm::vec3(0);
-	Vertex* vertex = nullptr;
-	bool locked = false;
-	cSphere sphere;
-
-	cSphere UpdateSphere(const Transform& transform)
-	{
-		glm::vec3 originalCenter = sphere.center;
-		float orginalRadius = sphere.radius;
-		glm::mat4 transformMatrix = transform.GetModelMatrix();
-		glm::vec4 transformedCenter = transformMatrix * glm::vec4(originalCenter, 1.0f);
-
-		glm::mat4 scaleMatrix = glm::mat4(1.0f); // Initialize the scale matrix
-		scaleMatrix[0][0] = transform.scale.x;
-		scaleMatrix[1][1] = transform.scale.y;
-		scaleMatrix[2][2] = transform.scale.z;
-
-		float maxScale = glm::max(transform.scale.x, glm::max(transform.scale.y, transform.scale.z));
-		float updatedRadius = orginalRadius * maxScale;
-
-		return cSphere(glm::vec3(transformedCenter), updatedRadius);
-	}
-};
-
-struct Stick
-{
-	Stick() {};
-	Stick(Point* _pointA, Point* _pointB) : pointA(_pointA), pointB(_pointB)
-	{
-		restLength = glm::distance(_pointA->position, _pointB->position);
-	};
-
-	Point* pointA = nullptr;
-	Point* pointB = nullptr;
-	float restLength = 0;
-	bool isActive = true;
-	bool isLocked = false;
+	CLOTH = 0,
+	SPRING = 1
 };
 
 class SoftbodyObject : public Model
@@ -62,6 +22,7 @@ public:
 
 	float gravity = 0.1f /*-9.81f*/;
 
+	BodyType type = BodyType::CLOTH;
 
 	std::vector<Triangle> listOfTriangles;
 	std::vector<Point*> listOfPoints;
@@ -69,7 +30,8 @@ public:
 	std::vector<Triangle> GetTriangleList();
 
 	void Initialize();
-	void CalculateVertex();
+	void CalculateCloth();
+	void CalculateSpring();
 	void SetupPoints(std::vector<Vertex>& vertices);
 	void SetupSticks(std::shared_ptr<Mesh> mesh, unsigned int currentMeshIndex);
 
