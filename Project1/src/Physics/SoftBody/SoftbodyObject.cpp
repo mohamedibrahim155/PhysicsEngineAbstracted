@@ -530,24 +530,24 @@ void SoftbodyObject::AddLockSphere(glm::vec3 centre, float radius)
 
 void SoftbodyObject::UpdateVertices()
 {
+	glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
 
 	switch (type)
 	{
 	case BodyType::CLOTH:
 
-		//for (Point* point : listOfPoints)
-		//{
-		//	glm::vec4 vertexMatrix = glm::vec4(point->position, 1.0f);
+		for (Point* point : listOfPoints)
+		{
+			glm::vec4 vertexMatrix = glm::vec4(point->position, 1.0f);
 
-		//	glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
-		//	vertexMatrix = modelInversematrix * vertexMatrix;
+		
+			vertexMatrix = modelInversematrix * vertexMatrix;
 
-		//	point->vertex[0]->Position = glm::vec3(vertexMatrix.x, vertexMatrix.y, vertexMatrix.z);
-		//}
+			point->vertex[0]->vertex->Position = glm::vec3(vertexMatrix.x, vertexMatrix.y, vertexMatrix.z);
+		}
 		break;
 	case BodyType::SPRING:
 
-		glm::mat4 modelInversematrix = transform.GetModelInverseMatrix();
 		for (Point* point : listOfPoints)
 		{
 			for (size_t i = 0; i < point->vertex.size(); i++)

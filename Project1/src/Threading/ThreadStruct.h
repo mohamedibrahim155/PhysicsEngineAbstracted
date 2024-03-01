@@ -6,17 +6,17 @@
 #include "../ImGui/PanelManager.h"
 
 
-struct SoftBodyThread // SoftBody Struct Infor
+struct ApplicationThread // SoftBody Struct Infor
 {
-	PhysicsEngine* engine;
+	PhysicsEngine* physicsEngine;
     ThreadManager* manager;
-    EntityManager* eneityManager;
+    EntityManager* entityManager;
     PanelManager* panelmanager;
 
 
     double desiredUpdateTime = 0.0;  
-    bool bRun = false;	
-    bool bIsAlive = true;
+    bool isThreadActive = false;	
+    bool isActive = true;
     DWORD sleepTime;	
 
     DWORD ThreadId = 0;

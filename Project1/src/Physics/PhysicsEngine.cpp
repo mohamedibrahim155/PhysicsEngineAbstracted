@@ -195,6 +195,16 @@ void PhysicsEngine::UpdateVerlet(float deltatime)
     }
 }
 
+void PhysicsEngine::UpdateSoftBodiesVertices()
+{
+    for (SoftbodyObject* object : softbodyObjects)
+    {
+        if (!object->isSoftBodyActive) continue;
+
+        object->UpdateVertices();
+    }
+}
+
 
 
 //glm::vec3 newDirection = -glm::normalize(physicsObjects[j]->model->transform.position - physicsObjects[i]->UpdateSphere().center);

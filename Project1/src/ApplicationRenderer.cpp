@@ -18,7 +18,7 @@ ApplicationRenderer::~ApplicationRenderer()
 {
 }
 
-SoftBodyThread* sofbodyThread = sbInfo;
+ApplicationThread* sofbodyThread = sbInfo;
 
 void ApplicationRenderer::WindowInitialize(int width, int height, std::string windowName)
 {
@@ -257,7 +257,7 @@ void ApplicationRenderer::Start()
   //  0.00192526, 0.991442, -0.00474217
     StartThreads* summatest = new StartThreads();
 
-    sofbodyThread->bRun = true;
+    sofbodyThread->isThreadActive = true;
 }
 
 void ApplicationRenderer::PreRender()
@@ -343,6 +343,12 @@ void ApplicationRenderer::Render()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    sofbodyThread->isThreadActive = false;
+    sofbodyThread->isActive = false;
+
+    CloseHandle(sofbodyThread->threadHandle);
+
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

@@ -26,6 +26,7 @@ public:
 	void Update(float deltaTime);
 	void UpdatePhysics(float deltatime);
 	void UpdateVerlet(float deltatime);
+	void UpdateSoftBodiesVertices();
 
 
 	std::vector<glm::vec3> collisionPoints;

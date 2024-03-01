@@ -1,42 +1,39 @@
 #pragma once
 #include "ThreadStruct.h"
 
-extern SoftBodyThread* sbInfo = new SoftBodyThread();
+extern ApplicationThread* sbInfo = new ApplicationThread();
 
 
-DWORD WINAPI UpdateSoftBodyThread(LPVOID lpParameter)
+DWORD WINAPI UpdateApplicationThread(LPVOID lpParameter)
 {
 
-	SoftBodyThread* sbInfor = (SoftBodyThread*)lpParameter;
+	ApplicationThread* threadPointer = (ApplicationThread*)lpParameter;
 
 	double lastFrameTime = glfwGetTime();
-	double totalElapsedFrameTime = 0.0;
+	double timeStep = 0.0;
 	DWORD sleepTime_ms = 1;
 
 
-	while (sbInfor->bIsAlive)
+	while (threadPointer->isActive)
 	{
-		if (sbInfor->bRun)
+		if (threadPointer->isThreadActive)
 		{
 			double currentTime = glfwGetTime();
 			double deltaTime = currentTime - lastFrameTime;
 			lastFrameTime = currentTime;
 
-			totalElapsedFrameTime += deltaTime;
+			timeStep += deltaTime;
 
 
 
-			if (totalElapsedFrameTime >= sbInfor->desiredUpdateTime)
-			{
-				totalElapsedFrameTime = 0;
-
-				//sbInfor->manager->Update(deltaTime);
-				sbInfor->eneityManager->Update(deltaTime);
-				sbInfor->engine->Update(deltaTime);
-			}
+			
+				//threadPointer->manager->Update(deltaTime);
+				threadPointer->entityManager->Update(deltaTime);
+				threadPointer->physicsEngine->Update(deltaTime);
+		
 
 
-			Sleep(sbInfor->sleepTime);
+			Sleep(threadPointer->sleepTime);
 		}
 
 	}
@@ -50,17 +47,17 @@ void StartThreadForSoftBody(float time)
 {
 	
 	sbInfo->desiredUpdateTime = time;
-	sbInfo->engine = &PhysicsEngine::GetInstance();
+	sbInfo->physicsEngine = &PhysicsEngine::GetInstance();
 	sbInfo->manager = &ThreadManager::Getinstance();
-	sbInfo->eneityManager = &EntityManager::GetInstance();
+	sbInfo->entityManager = &EntityManager::GetInstance();
 	sbInfo->panelmanager = &PanelManager::GetInstance();
-	sbInfo->bIsAlive = true;
+	sbInfo->isActive = true;
 	sbInfo->sleepTime = 1;
 
 	sbInfo->threadHandle = CreateThread(
 		NULL,						
 		0,							
-		UpdateSoftBodyThread,		
+		UpdateApplicationThread,		
 		(void*)sbInfo,			
 		0,						
 		&sbInfo->ThreadId);		
