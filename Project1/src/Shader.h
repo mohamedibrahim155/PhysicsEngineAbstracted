@@ -14,7 +14,7 @@
 
 enum BlendMode
 {
-    OPAQUE = 1,
+    Opaque = 1,
     ALPHA_BLEND = 2,
     ALPHA_CUTOUT = 3,
     SOLID = 4
@@ -26,10 +26,10 @@ class Shader
 public:
 
     Shader();
-    Shader(const char* vertexPath, const char* fragmentPath, BlendMode type = BlendMode::OPAQUE);
+    Shader(const char* vertexPath, const char* fragmentPath, BlendMode type = BlendMode::Opaque);
    ~Shader();
 
-   void LoadShader(const char* vertexPath, const char* fragmentPath, BlendMode type = BlendMode::OPAQUE);
+   void LoadShader(const char* vertexPath, const char* fragmentPath, BlendMode type = BlendMode::Opaque);
        
      void Bind() const;
      void Unbind() const;
@@ -52,7 +52,7 @@ public:
 
     unsigned int rendererID;
     bool modelUniform = true;
-    BlendMode blendMode = BlendMode::OPAQUE;
+    BlendMode blendMode = BlendMode::Opaque;
    
 private:
   

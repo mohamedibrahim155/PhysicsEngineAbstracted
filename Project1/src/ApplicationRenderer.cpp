@@ -1,5 +1,6 @@
 #include"ApplicationRenderer.h"
-
+#include"Threading/SoftBodyThread.h"
+#include "Threading/StartThreads.h"
 
 ApplicationRenderer::ApplicationRenderer()
 {
@@ -17,7 +18,7 @@ ApplicationRenderer::~ApplicationRenderer()
 {
 }
 
-
+SoftBodyThread* sofbodyThread = sbInfo;
 
 void ApplicationRenderer::WindowInitialize(int width, int height, std::string windowName)
 {
@@ -145,7 +146,7 @@ void ApplicationRenderer::InitializeShaders()
 {
     defaultShader = new Shader("Shaders/DefaultShader_Vertex.vert", "Shaders/DefaultShader_Fragment.frag");
     solidColorShader = new Shader("Shaders/SolidColor_Vertex.vert", "Shaders/SolidColor_Fragment.frag", SOLID);
-    stencilShader = new Shader("Shaders/StencilOutline.vert", "Shaders/StencilOutline.frag", OPAQUE);
+    stencilShader = new Shader("Shaders/StencilOutline.vert", "Shaders/StencilOutline.frag", Opaque);
     //ScrollShader = new Shader("Shaders/ScrollTexture.vert", "Shaders/ScrollTexture.frag");
 
     alphaBlendShader = new Shader("Shaders/DefaultShader_Vertex.vert", "Shaders/DefaultShader_Fragment.frag", ALPHA_BLEND);
@@ -192,7 +193,7 @@ void ApplicationRenderer::InitializeSkybox()
 
 void ApplicationRenderer::Start()
 {
-
+    StartThreadForSoftBody(0.01);
 
     sceneViewcamera->postprocessing->InitializePostProcessing();
 
@@ -254,6 +255,9 @@ void ApplicationRenderer::Start()
     softBodyTest1->AddLockSphere(glm::vec3(0.00192526f, 0.991442f, -0.00474217f), 0.08f);
 
   //  0.00192526, 0.991442, -0.00474217
+    StartThreads* summatest = new StartThreads();
+
+    sofbodyThread->bRun = true;
 }
 
 void ApplicationRenderer::PreRender()
@@ -503,7 +507,7 @@ void ApplicationRenderer::PostRender()
 
     if (isPlayMode)
     {
-        PhysicsEngine::GetInstance().Update(Time::GetInstance().deltaTime);
+      //  PhysicsEngine::GetInstance().Update(Time::GetInstance().deltaTime);
     }
 }
 

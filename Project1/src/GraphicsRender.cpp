@@ -19,7 +19,7 @@ GraphicsRender& GraphicsRender::GetInstance()
 
 void GraphicsRender::AddModelAndShader(Model* model, Shader* shader)
 {
-	if (shader->blendMode ==OPAQUE || shader->blendMode == ALPHA_CUTOUT || shader->blendMode==SOLID)
+	if (shader->blendMode ==Opaque || shader->blendMode == ALPHA_CUTOUT || shader->blendMode==SOLID)
 	{
 		modelAndShaderList.push_back(new ModelAndShader(model, shader));
 	}

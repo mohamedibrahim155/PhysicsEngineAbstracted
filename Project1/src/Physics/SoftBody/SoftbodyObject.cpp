@@ -328,7 +328,7 @@ void SoftbodyObject::UpdateVerlet(float deltaTime)
 	UpdatePoints(deltaTime);
 	CollisionTest();
 	UpdateSticks(deltaTime);
-	UpdateVertices();
+	//UpdateVertices();
 }
 
 void SoftbodyObject::UpdateSticks(float deltaTime)

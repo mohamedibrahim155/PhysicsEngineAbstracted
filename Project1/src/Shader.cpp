@@ -4,7 +4,7 @@
 
 Shader::Shader()
 {
-    this->blendMode = OPAQUE;
+    this->blendMode = Opaque;
     rendererID = -1;
 
 }

@@ -80,7 +80,7 @@ void Mesh::Draw(Shader* shader)
     {
         DrawSolidColorMesh(shader , glm::vec4(1));
     }
-    else /*if (shader->blendMode == OPAQUE || shader->blendMode == ALPHA_BLEND || shader->blendMode == ALPHA_CUTOUT)*/
+    else /*if (shader->blendMode == Opaque || shader->blendMode == ALPHA_BLEND || shader->blendMode == ALPHA_CUTOUT)*/
     {
         DrawShadedMesh(shader);
     }
